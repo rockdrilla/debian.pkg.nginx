@@ -1,0 +1,6 @@
+## KrD: in order to use Nginx Amplify:
+# access_log %file_log_access% main_ext;
+
+# log_subrequest on;
+
+error_log %file_log_error% warn;

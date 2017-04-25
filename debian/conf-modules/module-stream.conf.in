@@ -1,0 +1,4 @@
+stream {
+	include /%path_conf_enabled%/stream-*.conf;
+	include /%path_site_enabled%/stream-*.conf;
+}

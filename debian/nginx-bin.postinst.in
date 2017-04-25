@@ -1,0 +1,46 @@
+#!/bin/sh
+set -e
+D=/dev/null
+
+pid_normal=%file_pid%
+pid_root=%root_file_pid%
+
+case "$1" in
+abort-upgrade|abort-remove|abort-deconfigure|configure)
+;;
+triggered)
+  if [ -x /etc/init.d/nginx ]; then
+    if [ -s "${pid_normal}" ] && pidof /usr/sbin/nginx >$D; then
+      echo "Triggering nginx reload ..."
+      invoke-rc.d nginx reload || true
+    fi
+  fi
+  if [ -x /etc/init.d/nginx-root ]; then
+    if [ -s "${pid_root}" ] && pidof /usr/sbin/nginx >$D; then
+      echo "Triggering nginx-root reload ..."
+      invoke-rc.d nginx-root reload || true
+    fi
+  fi
+  exit 0
+;;
+*)
+  echo "postinst called with unknown argument \`$1'" >&2
+  exit 1
+;;
+esac
+
+if [ -x /etc/init.d/nginx ]; then
+  if [ -s "${pid_normal}" ] && pidof /usr/sbin/nginx >$D; then
+    invoke-rc.d nginx upgrade || invoke-rc.d nginx restart
+    exit $?
+  fi
+fi
+
+if [ -x /etc/init.d/nginx-root ]; then
+  if [ -s "${pid_root}" ] && pidof /usr/sbin/nginx >$D; then
+    invoke-rc.d nginx-root upgrade || invoke-rc.d nginx-root restart
+    exit $?
+  fi
+fi
+
+exit 0

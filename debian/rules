@@ -1,0 +1,109 @@
+#!/usr/bin/make -f
+NGX_SRCDIR =$(CURDIR)
+PKG_STEM   =common
+
+include debian/rules.common
+
+SRC_PATHS +=html man
+
+PKG_STANDALONE =nginx nginx-bin nginx-dev
+PKG_MODULES    =$(filter libnginx-%,$(shell dh_listpackages -a))
+
+BUILDDIR_bin =debian/build-bin
+
+dbf_bin     =$(call dbf,+all,$(1))
+bin_cflags  =$(strip $(call dbf_bin,CFLAGS) -fPIE $(call dbf_bin,CPPFLAGS))
+bin_ldflags =$(strip $(call dbf_bin,LDFLAGS) -fPIE -pie)
+
+## KrD: fix debug prefix path mapping - strip default flag
+bin_cflags :=$(filter-out -fdebug-prefix-map=%,$(bin_cflags))
+ifneq (,$(PKG_VER_DEBUG))
+  ## KrD: fix debug prefix path mapping - append corrent flag
+  bin_cflags :=$(bin_cflags) -fdebug-prefix-map=$(CURDIR)/$(BUILDDIR_bin)=.
+endif
+
+CONF_FLAGS_bin =$(conf_common) \
+  --with-cc-opt='$(bin_cflags)' \
+  --with-ld-opt='$(bin_ldflags)'
+
+override_dh_auto_configure: ngx_configure_binary
+ngx_configure_binary: ngx_early_source_copy
+ngx_configure_binary: BUILDDIR   =$(BUILDDIR_bin)
+ngx_configure_binary: CONF_FLAGS =$(CONF_FLAGS_bin)
+ngx_configure_binary:
+	$(nginx_conf)
+
+override_dh_auto_build: ngx_build_binary
+ngx_build_binary:
+	$(MAKE) -C $(BUILDDIR_bin) -f objs/Makefile binary manpage
+
+override_dh_clean: ngx_clean_binary
+ngx_clean_binary:
+	rm -rf $(BUILDDIR_bin)
+
+override_dh_auto_configure: ngx_generate_substvars_binary
+ngx_generate_substvars_binary: ngx_generate_substvars
+	{ V='$(NGX_VERSION)'; \
+	  echo "nginx:Depends=nginx-bin (>= $${V}) | nginx-bin (<< $${V}.0~)"; \
+	} >> debian/substvars.$(PKG_STEM).in
+
+override_dh_install: ngx_cleanup_conf
+ngx_cleanup_conf:
+	rm -f conf/nginx.conf
+	find debian/conf/ -name '*.in' -type f -delete
+
+override_dh_installdocs: ngx_install_docs_binary
+ngx_install_docs_binary:
+	@dh_installdocs \
+	  $(foreach p,$(PKG_STANDALONE),--package=$(p))
+
+override_dh_installchangelogs: ngx_install_logs_binary
+ngx_install_logs_binary:
+	@dh_installchangelogs \
+	  $(foreach p,$(PKG_STANDALONE),--package=$(p))
+
+override_dh_link: ngx_create_aux_links_binary
+ngx_create_aux_links_binary:
+	mkdir -p debian/nginx-bin/$(path_prefix); \
+	for p in '$(path_dynmod)'; do \
+	  ln -sf /$${p} \
+	  debian/nginx-bin/$(path_prefix)/; \
+	done; \
+	for N in $(PKG_MODULES); do \
+	  p=debian/$${N}/$(path_doc); \
+	  mkdir -p $${p}; \
+	  ln -sf nginx-bin $${p}/$${N}; \
+	done
+
+override_dh_lintian: ngx_lintian_itp
+ngx_lintian_itp:
+	for N in $(PKG_STANDALONE); do \
+	  echo "$${N}: new-package-should-close-itp-bug" \
+	    >> debian/$${N}.lintian-overrides; \
+	done
+
+override_dh_lintian: ngx_lintian_init
+ngx_lintian_init:
+	for I in nginx nginx-root; do \
+	  echo "nginx: init.d-script-does-not-implement-optional-option etc/init.d/$$I status"; \
+	  for A in start stop restart force-reload; do \
+	    echo "nginx: init.d-script-does-not-implement-required-option etc/init.d/$$I $$A"; \
+	  done; \
+	  echo "nginx: init.d-script-does-not-source-init-functions etc/init.d/$$I"; \
+	  echo "nginx: script-in-etc-init.d-not-registered-via-update-rc.d etc/init.d/$$I"; \
+	done >> debian/nginx.lintian-overrides
+
+override_dh_installlogrotate:
+	for I in nginx nginx-root; do \
+	  dh_installlogrotate --package=nginx --name=$$I; \
+	done
+
+override_dh_systemd_enable:
+	for I in nginx nginx-root; do \
+	  dh_systemd_enable --package=nginx --name=$$I; \
+	done
+
+override_dh_installinit:
+	for I in nginx nginx-root; do \
+	  dh_installinit --package=nginx --name=$$I; \
+	done

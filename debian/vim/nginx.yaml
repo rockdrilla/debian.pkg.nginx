@@ -1,0 +1,7 @@
+addon: nginx
+description: "allow syntax highlighting for Nginx configuration files"
+files:
+  - ftdetect/nginx.vim
+  - ftplugin/nginx.vim
+  - indent/nginx.vim
+  - syntax/nginx.vim

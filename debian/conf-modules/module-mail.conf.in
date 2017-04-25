@@ -1,0 +1,4 @@
+mail {
+	include /%path_conf_enabled%/mail-*.conf;
+	include /%path_site_enabled%/mail-*.conf;
+}

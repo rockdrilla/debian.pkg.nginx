@@ -1,0 +1,108 @@
+#!/bin/sh
+set -e
+D=/dev/null
+
+setup_access_int() {
+  chown $1 "$4"
+  chgrp $2 "$4"
+  chmod $3 "$4"
+}
+
+setup_access() {
+  ## allow local admin to override
+  stat=$(dpkg-statoverride --list "$4" || true)
+  if [ -n "${stat}" ]; then
+    setup_access_int ${stat}
+  else
+    setup_access_int "$@"
+  fi
+}
+
+setup_dir() {
+  if [ ! -e "$4" ]; then
+    mkdir -p "$4"
+  fi
+  setup_access "$@"
+}
+
+setup_file() {
+  if [ ! -e "$4" ]; then
+    touch "$4"
+  fi
+  setup_access "$@"
+}
+
+d_h_s() {
+  if which deb-systemd-helper >$D; then
+    deb-systemd-helper "$@"
+  fi
+}
+
+case "$1" in
+configure)
+  for i in '/%path_log%' '/%root_path_log%'; do
+    setup_dir root %nginx_log_group% 0755 "$i"
+  done
+
+  setup_dir %nginx_user% root 0750 '/%path_data%'
+  setup_dir root root 0750 '/%root_path_data%'
+
+  ## secure default logfiles on fresh installations
+  if [ -z "$2" ]; then
+    for i in '%file_log_access%' '%file_log_error%'; do
+      setup_file %nginx_user% %nginx_log_group% 0640 "$i"
+    done
+
+    for i in '%root_file_log_access%' '%root_file_log_error%'; do
+      setup_file root %nginx_log_group% 0640 "$i"
+    done
+  fi
+;;
+abort-upgrade|abort-remove|abort-deconfigure)
+;;
+*)
+  echo "postinst called with unknown argument \`$1'" >&2
+  exit 1
+;;
+esac
+
+case "$1" in
+configure|abort-upgrade)
+  for i in nginx nginx-root; do
+    [ -x "/etc/init.d/$i" ] || continue
+    update-rc.d $i defaults || exit $?
+  done >$D
+
+  for i in nginx; do
+    [ -x "/etc/init.d/$i" ] || continue
+    a=restart
+    if [ -z "$2" ]; then
+      a=start
+    fi
+    invoke-rc.d $i $a || exit $?
+  done >$D
+;;
+esac
+
+for i in nginx; do
+  s=${i}.service
+  d_h_s unmask $s || true
+  if d_h_s was-enabled $s; then
+    d_h_s enable $s || true
+  else
+    d_h_s update-state $s || true
+  fi
+done >$D 2>$D
+
+for i in nginx nginx-root; do
+  s=${i}.service
+  if d_h_s debian-installed $s; then
+    d_h_s unmask $s || true
+    if d_h_s was-enabled $s; then
+      d_h_s enable $s || true
+    fi
+  fi
+  d_h_s update-state $s || true
+done >$D 2>$D
+
+exit 0

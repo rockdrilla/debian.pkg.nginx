@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+D=/dev/null
+
+case "$1" in
+remove)
+  if [ -s '%file_pid%' ] && pidof /usr/sbin/nginx >$D; then
+    invoke-rc.d nginx stop || exit $?
+  fi
+  if [ -s '%root_file_pid%' ] && pidof /usr/sbin/nginx >$D; then
+    invoke-rc.d nginx-root stop || exit $?
+  fi
+;;
+remove-in-favour|deconfigure|deconfigure-in-favour|upgrade|failed-upgrade)
+;;
+*)
+  echo "prerm called with unknown argument \`$1'" >&2
+  exit 1
+;;
+esac
+
+exit 0

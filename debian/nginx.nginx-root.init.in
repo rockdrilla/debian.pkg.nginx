@@ -1,0 +1,16 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:   nginx-root
+# Required-Start:    $local_fs $remote_fs $network $syslog $named
+# Required-Stop:     $local_fs $remote_fs $network $syslog $named
+# Default-Start:     
+# Default-Stop:      0 1 6
+# Short-Description: starts the nginx web server with root privileges
+# Description:       starts nginx using start-stop-daemon
+### END INIT INFO
+
+NAME=nginx-root
+DESC='nginx - high performance web/proxy server (ROOT INSTANCE)'
+
+. /%path_prefix%/init-functions

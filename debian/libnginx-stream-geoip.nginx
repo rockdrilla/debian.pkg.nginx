@@ -1,0 +1,1 @@
+module prio=01 name=stream-geoip objs/ngx_stream_geoip_module.so

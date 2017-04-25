@@ -1,0 +1,1 @@
+debian/dh_nginx.in %path_prefix%/debian

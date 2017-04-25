@@ -1,0 +1,5 @@
+nginx (1:1.13.0-1) experimental; urgency=high
+
+  * Initial release of reworked nginx package.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 25 Apr 2017 20:25:34 +0300

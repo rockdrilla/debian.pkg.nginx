@@ -1,0 +1,157 @@
+Source: nginx
+Section: httpd
+Priority: optional
+Maintainer: Konstantin Demin <rockdrilla@gmail.com>
+Build-Depends: debhelper (>= 10),
+ libgd-dev,
+ libgeoip-dev,
+ libpcre3-dev,
+ libperl-dev,
+ libssl-dev (>= 1.1.0),
+ libxslt1-dev,
+ zlib1g-dev
+Standards-Version: 3.9.8.0
+Homepage: http://nginx.org
+Vcs-Git: https://github.com/rockdrilla/debian.pkg.nginx.git
+Vcs-Browser: https://github.com/rockdrilla/debian.pkg.nginx
+
+Package: nginx
+Architecture: all
+Multi-Arch: foreign
+Depends: lsb-base (>= 3.0-6), ${nginx:Depends}, ${misc:Depends}
+Provides: httpd, httpd-cgi
+Description: high performance web/proxy server (metapackage)
+ ${nginx:Description}
+ .
+ This package contains base configuration files used by Nginx
+ and two separate init scripts for running Nginx as daemon - as usual user
+ (most cases) and as root (transparent proxy cases).
+
+Package: nginx-bin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: nginx-dev (= ${source:Version}),
+ nginx-module,
+ fcgiwrap,
+ ssl-cert
+Provides: httpd, httpd-cgi
+Description: Nginx - standalone executable
+ ${nginx:Description}
+ .
+ This package provides the Nginx binary with following HTTP modules:
+ - HTTP standard modules:
+     - Core, Access, Auth Basic, Auto Index, Browser,
+       Charset, Empty GIF, FastCGI, Geo, Gzip, Headers,
+       Index, Limit Connections, Limit Requests, Log,
+       Map, Memcached, Proxy, Referer, Rewrite, SCGI,
+       Split Clients, SSI, Upstream, User ID, uWSGI
+ - HTTP optional modules:
+     - Addition, Auth Request, FLV, Gunzip, Gzip Static,
+       HTTP/2, MP4, Random Index, Real IP, Secure Link,
+       Slice, SSL, Stub Status, Substitution, WebDAV
+ .
+ Following modules are built as dynamic modules and provided
+ in separate packages:
+ .
+   HTTP GeoIP            - libnginx-http-geoip
+   HTTP Image Filter     - libnginx-http-image-filter
+   HTTP Perl (embedded)  - libnginx-http-perl
+   HTTP XSLT Filter      - libnginx-http-xslt-filter
+   Mail                  - libnginx-mail
+   Stream (except GeoIP) - libnginx-stream
+   Stream GeoIP          - libnginx-stream-geoip
+
+Package: libnginx-http-geoip
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
+Enhances: nginx-bin
+Provides: nginx-module
+Description: Nginx - HTTP GeoIP module
+ ${nginx:Description}
+ .
+ This package provides HTTP GeoIP module for Nginx.
+
+Package: libnginx-http-image-filter
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
+Enhances: nginx-bin
+Provides: nginx-module
+Description: Nginx - HTTP Image Filter module
+ ${nginx:Description}
+ .
+ This package provides HTTP Image Filter module for Nginx.
+
+Package: libnginx-http-perl
+Architecture: any
+Priority: extra
+Depends: ${nginx:Depends}, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}
+Enhances: nginx-bin
+Provides: nginx-module
+Description: Nginx - HTTP Perl module
+ ${nginx:Description}
+ .
+ This package provides HTTP Perl module for Nginx.
+
+Package: libnginx-http-xslt-filter
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
+Enhances: nginx-bin
+Provides: nginx-module
+Description: Nginx - HTTP XSLT Transformation module
+ ${nginx:Description}
+ .
+ This package provides HTTP XSLT Transformation module for Nginx.
+
+Package: libnginx-mail
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
+Enhances: nginx-bin
+Provides: nginx-module
+Description: Nginx - Mail modules
+ ${nginx:Description}
+ .
+ This package provides full set of Mail modules for Nginx:
+ .
+ - Core, Auth HTTP, IMAP, POP3, Proxy, SMTP, SSL.
+
+Package: libnginx-stream
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
+Suggests: libnginx-stream-geoip
+Enhances: nginx-bin
+Provides: nginx-module
+Description: Nginx - Stream modules (except GeoIP)
+ ${nginx:Description}
+ .
+ This package provides following Stream modules for Nginx:
+ .
+   - Core, Access, Geo, Limit Connections, Log,
+     Map, Proxy, Real IP, SSL, SSL Pre-read,
+     Return, Split Clients, Upstream.
+
+Package: libnginx-stream-geoip
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${libnginx-stream:Depends}
+Enhances: libnginx-stream
+Provides: nginx-module
+Description: Nginx - Stream GeoIP module
+ ${nginx:Description}
+ .
+ This package provides Stream GeoIP module for Nginx.
+
+Package: nginx-dev
+Architecture: all
+Multi-Arch: foreign
+Section: libdevel
+Depends: build-essential, ${nginx:Build-Depends}
+Description: Nginx - development files
+ ${nginx:Description}
+ .
+ This package provides full source code to build out-of-tree dynamic
+ modules for Nginx.

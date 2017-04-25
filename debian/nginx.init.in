@@ -1,0 +1,16 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:   nginx
+# Required-Start:    $local_fs $remote_fs $network $syslog $named
+# Required-Stop:     $local_fs $remote_fs $network $syslog $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts the nginx web server
+# Description:       starts nginx using start-stop-daemon
+### END INIT INFO
+
+NAME=nginx
+DESC='nginx - high performance web/proxy server'
+
+. /%path_prefix%/init-functions

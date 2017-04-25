@@ -1,0 +1,61 @@
+control compiler flags via debian/rules
+
+--
+Konstantin Demin <rockdrilla@gmail.com>
+--- a/auto/cc/clang
++++ b/auto/cc/clang
+@@ -20,7 +20,7 @@
+ 
+ #NGX_CLANG_OPT="-O2"
+ #NGX_CLANG_OPT="-Oz"
+-NGX_CLANG_OPT="-O"
++#NGX_CLANG_OPT="-O"
+ 
+ case $CPU in
+     pentium)
+@@ -88,10 +88,10 @@
+ fi
+ 
+ # stop on warning
+-CFLAGS="$CFLAGS -Werror"
++#CFLAGS="$CFLAGS -Werror"
+ 
+ # debug
+-CFLAGS="$CFLAGS -g"
++#CFLAGS="$CFLAGS -g"
+ 
+ if [ ".$CPP" = "." ]; then
+     CPP="$CC -E"
+--- a/auto/cc/gcc
++++ b/auto/cc/gcc
+@@ -50,7 +50,7 @@
+ 
+ #NGX_GCC_OPT="-O2"
+ #NGX_GCC_OPT="-Os"
+-NGX_GCC_OPT="-O"
++#NGX_GCC_OPT="-O"
+ 
+ #CFLAGS="$CFLAGS -fomit-frame-pointer"
+ 
+@@ -138,7 +138,7 @@
+ # warnings
+ 
+ # -W requires at least -O
+-CFLAGS="$CFLAGS ${NGX_GCC_OPT:--O} -W"
++#CFLAGS="$CFLAGS ${NGX_GCC_OPT:--O} -W"
+ 
+ CFLAGS="$CFLAGS -Wall -Wpointer-arith"
+ #CFLAGS="$CFLAGS -Wconversion"
+@@ -166,10 +166,10 @@
+ 
+ 
+ # stop on warning
+-CFLAGS="$CFLAGS -Werror"
++#CFLAGS="$CFLAGS -Werror"
+ 
+ # debug
+-CFLAGS="$CFLAGS -g"
++#CFLAGS="$CFLAGS -g"
+ 
+ # DragonFly's gcc3 generates DWARF
+ #CFLAGS="$CFLAGS -g -gstabs"

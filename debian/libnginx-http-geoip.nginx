@@ -1,0 +1,1 @@
+module prio=00 name=http-geoip objs/ngx_http_geoip_module.so

@@ -1,0 +1,15 @@
+description "nginx - high performance web/proxy server (ROOT INSTANCE)"
+
+stop on runlevel [016]
+
+expect fork
+respawn
+
+pre-start script
+	[ -x /usr/sbin/nginx ] || { stop; exit 0; }
+	/usr/sbin/nginx -c %root_file_config% -q -t || { stop; exit 0; }
+end script
+
+exec /usr/sbin/nginx -c %root_file_config%
+
+pre-stop exec /usr/sbin/nginx -c %root_file_config% -s quit

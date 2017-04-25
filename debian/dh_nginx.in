@@ -1,0 +1,214 @@
+#!/bin/sh -e
+ME=$(basename "$0")
+
+D=/dev/null
+
+SUFFIX='.nginx'
+PKG_FILES=$(find debian/ -maxdepth 1 -name "*${SUFFIX}" -type f 2>$D | grep -Eve '^\s*$' | sort)
+if [ -z "${PKG_FILES}" ]; then exit 0; fi
+
+## KrD: char 027 (0x17) is seemed to be safe separator for sed "s" command;
+## idea taken from Debian src:nginx/debian/dh_nginx
+readonly X='\027'
+
+readonly MOD_DEFAULT_PRIO=50
+
+for PKG_FILE in ${PKG_FILES}; do
+	PKG_NAME=$(basename "${PKG_FILE}" "${SUFFIX}")
+	PKG_DIR="debian/${PKG_NAME}"
+	while read TYPE ARGS; do
+		case "${TYPE}" in
+		module)
+			MOD_NAME=''
+			MOD_PRIO=''
+			MOD_FILES=''
+
+			for i in ${ARGS}; do
+				case "$i" in
+				name=*)
+					if [ -n "${MOD_NAME}" ]; then
+						cat >&2 <<-EOF
+						${ME}: ${PKG_NAME}${SUFFIX}:
+						  processed line: '${TYPE} ${ARGS}'
+						  error: 'name' directive is already defined
+						  quit
+						EOF
+						exit 1
+					fi
+					MOD_NAME=${i#*=}
+				;;
+				prio=*)
+					if [ -n "${MOD_PRIO}" ]; then
+						cat >&2 <<-EOF
+						${ME}: ${PKG_NAME}${SUFFIX}:
+						  processed line: '${TYPE} ${ARGS}'
+						  error: 'prio' directive is already defined
+						  quit
+						EOF
+						exit 1
+					fi
+					MOD_PRIO=${i#*=}
+				;;
+				*)
+					MOD_FILES=${MOD_FILES}${MOD_FILES:+' '}$i
+				;;
+				esac
+			done
+
+			if [ -z "${MOD_FILES}" ]; then
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  error: got '${TYPE}' rule, but no modules was specified
+				  quit
+				EOF
+				exit 1
+			fi
+
+			for i in ${MOD_FILES}; do
+				if [ ! -f "$i" ]; then
+					cat >&2 <<-EOF
+					${ME}: ${PKG_NAME}${SUFFIX}:
+					  processed line: '${TYPE} ${ARGS}'
+					  error: file '$i' wasn't found
+					  quit
+					EOF
+					exit 1
+				fi
+			done
+
+			if ! echo "${MOD_NAME}" | grep -Eqe '^(|[a-zA-Z0-9._-]+)$'; then
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  error: name '${MOD_NAME}' is invalid
+				  quit
+				EOF
+				exit 1
+			fi
+
+			if [ -z "${MOD_NAME}" ]; then
+				MOD_NAME=$(echo "${MOD_FILES}" | sed -re "s${X}^([^ ]*/)?([^ /]+)\\.so(\\.[^ ]*)?( .*)?${X}\\2${X}")
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  warning: config file name wasn't specified
+				  assume name by first module file name: '${MOD_NAME}'
+				EOF
+			fi
+
+			if ! echo "${MOD_PRIO}" | grep -Eqe '^(|[0-9]+)$'; then
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  error: priority '${MOD_PRIO}' is invalid
+				  quit
+				EOF
+				exit 1
+			fi
+
+			if [ -z "${MOD_PRIO}" ]; then
+				MOD_PRIO=${MOD_DEFAULT_PRIO}
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  warning: module load priority wasn't specified
+				  assume default: ${MOD_PRIO}
+				EOF
+			fi
+
+			MOD_CONF="/%path_mod_available%/${MOD_NAME}.conf"
+
+			P=$(dirname "${PKG_DIR}${MOD_CONF}")
+			mkdir -p "$P/"
+
+			P="${PKG_DIR}/%path_dynmod%"
+			mkdir -p "$P/"
+			for i in ${MOD_FILES}; do
+				echo "load_module modules/${i##*/};" >> "${PKG_DIR}${MOD_CONF}"
+				cp --reflink=auto -a "$i" "$P/"
+			done
+		;;
+		config)
+			CONF_FILES=''
+
+			for i in ${ARGS}; do
+				CONF_FILES=${CONF_FILES}${CONF_FILES:+' '}$i
+			done
+
+			if [ -z "${CONF_FILES}" ]; then
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  error: got '${TYPE}' rule, but no config files was specified
+				  quit
+				EOF
+				exit 1
+			fi
+
+			for i in ${CONF_FILES}; do
+				if [ ! -f "$i" ]; then
+					cat >&2 <<-EOF
+					${ME}: ${PKG_NAME}${SUFFIX}:
+					  processed line: '${TYPE} ${ARGS}'
+					  error: file '$i' wasn't found
+					  quit
+					EOF
+					exit 1
+				fi
+			done
+
+			P="${PKG_DIR}/%path_conf_available%"
+			mkdir -p "$P/"
+			for i in ${CONF_FILES}; do
+				cp --reflink=auto -a "$i" "$P/"
+			done
+		;;
+		site)
+			SITE_FILES=''
+
+			for i in ${ARGS}; do
+				SITE_FILES=${SITE_FILES}${SITE_FILES:+' '}$i
+			done
+
+			if [ -z "${SITE_FILES}" ]; then
+				cat >&2 <<-EOF
+				${ME}: ${PKG_NAME}${SUFFIX}:
+				  processed line: '${TYPE} ${ARGS}'
+				  error: got '${TYPE}' rule, but no site files was specified
+				  quit
+				EOF
+				exit 1
+			fi
+
+			for i in ${SITE_FILES}; do
+				if [ ! -f "$i" ]; then
+					cat >&2 <<-EOF
+					${ME}: ${PKG_NAME}${SUFFIX}:
+					  processed line: '${TYPE} ${ARGS}'
+					  error: file '$i' wasn't found
+					  quit
+					EOF
+					exit 1
+				fi
+			done
+
+			P="${PKG_DIR}/%path_site_available%"
+			mkdir -p "$P/"
+			for i in ${SITE_FILES}; do
+				cp --reflink=auto -a "$i" "$P/"
+			done
+		;;
+
+		*)
+			cat >&2 <<-EOF
+			${ME}: ${PKG_NAME}${SUFFIX}:
+			  processed line: '${TYPE} ${ARGS}'
+			  error: unsupported rule type: '${TYPE}'
+			  quit
+			EOF
+			exit 1
+		;;
+		esac
+	done < "${PKG_FILE}"
+done

@@ -1,0 +1,1 @@
+nginx:Description=Nginx ("engine X") is a high-performance web and reverse proxy server${Newline}created by Igor Sysoev.${Newline}It can be used both as a standalone web server and as a proxy${Newline}to reduce the load on back-end HTTP(S), mail or generic TCP/UDP servers.

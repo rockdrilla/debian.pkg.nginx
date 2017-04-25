@@ -1,0 +1,441 @@
+MAKEFLAGS +=--no-print-directory
+
+override undefine CFLAGS
+override undefine CPPFLAGS
+override undefine LDFLAGS
+
+export DH_VERBOSE:=1
+override undefine DEB_BUILD_MAINT_OPTIONS
+export DEB_BUILD_OPTIONS +=noautodbgsym
+export DEB_LDFLAGS_MAINT_APPEND +=-Wl,-z,noexecstack
+
+## KrD: char 027 (0x17) is seemed to be safe separator for sed "s" command;
+## idea taken from Debian src:nginx/debian/dh_nginx
+X :=$(shell printf '\027')
+
+STRIP :=strip
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+  STRIP :=$(DEB_HOST_GNU_TYPE)-$(STRIP)
+endif
+
+CP :=cp --reflink=auto -a
+
+PKG_NAME    :=$(shell dpkg-parsechangelog -S Source)
+PKG_VERSION :=$(shell dpkg-parsechangelog -S Version)
+
+PKG_VER_STRUCT   :=$(shell echo '$(PKG_VERSION)' | sed -re 's$(X)^(([0-9]+):([0-9][0-9a-zA-Z.+~:-]*)-([0-9a-zA-Z+.~]+)|([0-9]+):([0-9][0-9a-zA-Z.+~:]*)|([0-9][0-9a-zA-Z.+~-]*)-([0-9a-zA-Z+.~]+)|([0-9][0-9a-zA-Z.+~]*))$$$(X)\2\5|\3\7|\4\6\8\9$(X)')
+PKG_VER_REVISION :=$(shell echo '$(PKG_VER_STRUCT)' | cut -d '|' -f 1)
+PKG_VER_UPSTREAM :=$(shell echo '$(PKG_VER_STRUCT)' | cut -d '|' -f 2)
+PKG_VER_DEBIAN   :=$(shell echo '$(PKG_VER_STRUCT)' | cut -d '|' -f 3)
+
+PKG_VER_DEBUG :=$(shell echo '$(PKG_VERSION)' | grep -Ece 'debug|dbg')
+ifeq ($(PKG_VER_DEBUG),0)
+  PKG_VER_DEBUG :=
+else
+  PKG_VER_DEBUG :=y
+endif
+
+PKG_LIST :=$(shell dh_listpackages)
+
+ifeq (,$(PKG_DEV))
+  PKG_DEV :=$(word 1,$(filter %-dev,$(shell dh_listpackages -i)))
+endif
+
+nginx_user      =www-data
+nginx_run_group =www-data
+nginx_log_group =adm
+
+## KrD: common variables
+
+path_prefix  =usr/share/nginx
+path_conf    =etc/nginx
+path_log     =var/log/nginx
+path_data    =var/lib/nginx
+path_dynmod  =usr/lib/nginx/modules
+path_pid     =run
+path_lock    =var/lock
+path_source  =usr/src/nginx
+path_doc     =usr/share/doc
+
+path_mod_available =$(path_conf)/modules-available
+path_mod_enabled   =$(path_conf)/modules-enabled
+
+path_conf_available =$(path_conf)/conf-available
+path_conf_enabled   =$(path_conf)/conf-enabled
+
+path_site_available =$(path_conf)/sites-available
+path_site_enabled   =$(path_conf)/sites-enabled
+
+## KrD: normal nginx variables
+
+file_config     =/$(path_conf)/nginx.conf
+file_log_access =/$(path_log)/access.log
+file_log_error  =/$(path_log)/error.log
+file_lock       =/$(path_lock)/nginx.lock
+file_pid        =/$(path_pid)/nginx.pid
+
+path_temp_client  =/$(path_data)/body
+path_temp_fastcgi =/$(path_data)/fastcgi
+path_temp_proxy   =/$(path_data)/proxy
+path_temp_scgi    =/$(path_data)/scgi
+path_temp_uwsgi   =/$(path_data)/uwsgi
+
+## KrD: nginx instance with root privileges requires variable separation
+
+root_path_log  =$(path_log)-root
+root_path_data =$(path_data)-root
+
+root_file_config     =/$(path_conf)/root-nginx.conf
+root_file_log_access =/$(root_path_log)/access.log
+root_file_log_error  =/$(root_path_log)/error.log
+root_file_lock       =/$(path_lock)/nginx-root.lock
+root_file_pid        =/$(path_pid)/nginx-root.pid
+
+root_path_temp_client  =/$(root_path_data)/body
+root_path_temp_fastcgi =/$(root_path_data)/fastcgi
+root_path_temp_proxy   =/$(root_path_data)/proxy
+root_path_temp_scgi    =/$(root_path_data)/scgi
+root_path_temp_uwsgi   =/$(root_path_data)/uwsgi
+
+## KrD: configuration options (separated by function)
+
+conf_paths =\
+  --prefix=/$(path_prefix) \
+  --modules-path=/$(path_dynmod) \
+  --conf-path=$(file_config) \
+  --http-log-path=$(file_log_access) \
+  --error-log-path=$(file_log_error) \
+  --lock-path=$(file_lock) \
+  --pid-path=$(file_pid) \
+  --http-client-body-temp-path=$(path_temp_client) \
+  --http-fastcgi-temp-path=$(path_temp_fastcgi) \
+  --http-proxy-temp-path=$(path_temp_proxy) \
+  --http-scgi-temp-path=$(path_temp_scgi) \
+  --http-uwsgi-temp-path=$(path_temp_uwsgi)
+
+conf_properties =\
+  --with-threads \
+  --with-file-aio \
+  --with-compat
+
+conf_modules =\
+  --with-http_addition_module \
+  --with-http_auth_request_module \
+  --with-http_dav_module \
+  --with-http_flv_module \
+  --with-http_gunzip_module \
+  --with-http_gzip_static_module \
+  --with-http_mp4_module \
+  --with-http_random_index_module \
+  --with-http_realip_module \
+  --with-http_secure_link_module \
+  --with-http_slice_module \
+  --with-http_ssl_module \
+  --with-http_stub_status_module \
+  --with-http_sub_module \
+  --with-http_v2_module
+
+conf_dynmodules =\
+  --with-http_geoip_module=dynamic \
+  --with-http_image_filter_module=dynamic \
+  --with-http_perl_module=dynamic \
+  --with-http_xslt_module=dynamic \
+  --with-mail=dynamic \
+  --with-mail_ssl_module \
+  --with-stream=dynamic \
+  --with-stream_geoip_module=dynamic \
+  --with-stream_realip_module \
+  --with-stream_ssl_module \
+  --with-stream_ssl_preread_module
+
+conf_common =\
+  $(conf_paths) \
+  $(conf_properties) \
+  $(conf_modules) \
+  $(conf_dynmodules)
+
+dbf =$(shell env DEB_BUILD_MAINT_OPTIONS=hardening=$(1) dpkg-buildflags --get $(2))
+
+comma:=,
+mod_dbf     =$(call dbf,+all$(comma)-pie,$(1))
+mod_cflags  =$(strip $(call mod_dbf,CFLAGS) -fPIC $(call mod_dbf,CPPFLAGS))
+mod_ldflags =$(strip $(call mod_dbf,LDFLAGS) -fPIC)
+
+CONF_FLAGS =$(conf_common) \
+  --with-cc-opt='$(mod_cflags)' \
+  --with-ld-opt='$(mod_ldflags)'
+
+SRC_PATHS_CORE :=auto conf configure contrib src
+
+SRC_PATHS =$(SRC_PATHS_CORE)
+BUILDDIR  =$(CURDIR)
+
+NGX_VERSION =$(PKG_VERSION)
+NGX_3PM :=
+ifeq (,$(NGX_SRCDIR))
+  NGX_SRCDIR   :=/$(path_source)
+  NGX_VERSION  :=$(shell dpkg-query -W -f='$${source:Version}' nginx-dev)
+
+  NGX_3PM :=y
+
+  ifeq (,$(filter nginx-%,$(PKG_NAME)))
+    $(error ERROR: source package name "$(PKG_NAME)" doesn't conform to \
+      3rd party module naming scheme in format "nginx-{module_name}")
+  endif
+
+  NGX_3PM_NAME :=$(patsubst nginx-%,%,$(PKG_NAME))
+  PKG_STEM     :=mod-$(NGX_3PM_NAME)
+
+  NGX_3PM_BASE :=modules/$(PKG_NAME)
+  NGX_3PM_PATH :=$(NGX_3PM_BASE)$(if $(NGX_3PM_SUBPATH),/$(NGX_3PM_SUBPATH))
+
+  $(eval $(shell \
+    echo 'conf_dynmodules +=--add-dynamic-module=$(NGX_3PM_PATH)' \
+    > debian/rules.$(PKG_STEM) \
+  ))
+
+  ifneq (,$(NGX_3PM_DEPS))
+    $(eval include \
+      $(foreach m,$(NGX_3PM_DEPS),/usr/share/nginx/debian/rules.mod-$(m)))
+  endif
+  include debian/rules.$(PKG_STEM)
+endif
+
+ifeq (,$(PKG_VER_DEBUG))
+  export DEB_CFLAGS_MAINT_STRIP  +=-g
+  export DEB_CFLAGS_MAINT_APPEND +=-g0
+  mod_cflags :=$(filter-out -fdebug-prefix-map=%,$(mod_cflags))
+else
+  conf_properties +=--with-debug
+endif
+
+define nginx_conf =
+  dh_testdir && \
+  if [ ! -d '$(BUILDDIR)' ]; then \
+    mkdir -p '$(BUILDDIR)/'; \
+    $(CP) \
+      $(wildcard $(foreach f,$(SRC_PATHS),$(NGX_SRCDIR)/$(f))) \
+      '$(BUILDDIR)/'; \
+  fi && \
+  cd '$(BUILDDIR)/' && \
+  ./configure $(strip $(CONF_FLAGS)) && \
+  $(nginx_postconf)
+endef
+
+## KrD: improve build reproducibility
+## nota bene: this sed script is very ugly;
+## mail me if you know how to make it shorter and better
+define nginx_postconf =
+  sed -i -re \
+    's$(X)-fdebug-prefix-map=[^=]+=\. | -fdebug-prefix-map=[^=]+=\.$(X)$(X)g;' \
+    objs/ngx_auto_config.h
+endef
+
+## KrD: port of dh_strip
+define nginx_find_sharedlibs =
+  find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
+    -xdev -type f \
+    -regextype egrep \
+    -iregex '^.*\.(so.*?|cmxs|node)$$' \
+    '!' -iregex '^.*debug/.*\.so.*?$$' \
+    -exec file -F '|' -N '{}' '+' | \
+  grep -Ee '^[^|]+\|.*ELF.*shared' | \
+  grep -Ee '^[^|]+\|.*not stripped' | \
+  cut -d '|' -f 1
+endef
+
+## KrD: port of dh_strip
+define nginx_find_binaries =
+  find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
+    -xdev -type f \
+    -perm /0111 \
+    -exec file -F '|' -N '{}' '+' | \
+  grep -Ee '^[^|]+\|.*ELF.*(executable|shared)' | \
+  grep -Ee '^[^|]+\|.*not stripped' | \
+  cut -d '|' -f 1
+endef
+
+## KrD: port of dh_strip
+define nginx_find_staticlibs =
+  find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
+    -xdev -type f \
+    -regextype egrep \
+    -iregex '^.*/lib[^/]*\.a$$' \
+    '!' -iregex '^.*_g\.a$$' \
+    -exec file -F '|' -N '{}' '+' | \
+  grep -Ee '^[^|]+\|.* ar archive' | \
+  cut -d '|' -f 1
+endef
+
+## KrD: dirty lintian hack
+define nginx_lintian_unstripped =
+  while read L; do \
+    eval $$(echo "$${L}" | \
+      sed -re 's$(X)^debian/([^/]+)/(.*)\$$$(X)N='\1';F='\2'$(X)'); \
+    grep -Eqe "^Package: $${N}$$" || continue; \
+    c="debian/$${N}.lintian-overrides"; \
+    echo "$${N}: unstripped-binary-or-object $${F}" >> "$${c}"; \
+  done
+endef
+
+define nginx_strip =
+  $(nginx_find_sharedlibs) | \
+  xargs -r -L 1 $(STRIP) \
+    --remove-section=.comment \
+    --remove-section=.note \
+    --strip-unneeded \
+  || true; \
+  $(nginx_find_binaries) | \
+  xargs -r -L 1 $(STRIP) \
+    --remove-section=.comment \
+    --remove-section=.note \
+  || true; \
+  $(nginx_find_staticlibs) | \
+  xargs -r -L 1 $(STRIP) \
+    --remove-section=.comment \
+    --remove-section=.note \
+    --strip-debug \
+    --enable-deterministic-archives \
+  || true
+endef
+
+define nginx_nostrip =
+  $(nginx_find_sharedlibs) | \
+  $(nginx_lintian_unstripped) ; \
+  $(nginx_find_binaries) | \
+  $(nginx_lintian_unstripped) ; \
+  $(nginx_find_staticlibs) | \
+  $(nginx_lintian_unstripped)
+endef
+
+valid_name :='^[a-zA-Z_][a-zA-Z0-9_]*$$'
+define do_template =
+  :;F='$(1)';$(strip $(foreach v,$(.VARIABLES),\
+    $(if \
+      $(shell echo '$(v)' | grep -Eqe $(valid_name) && echo X || true),\
+      $(if \
+        $(shell grep -Fqe '%$(v)%' $(1) && echo X || true),\
+        grep -FHe '%$(v)%' $${F} | cut -d ':' -f 1 | sort -u | \
+        xargs -r sed -re 's$(X)%$(v)%$(X)$($(v))$(X)g' -i; \
+      )\
+    )\
+  ))
+endef
+
+override_dh_clean:
+	@dh_clean
+
+override_dh_auto_configure: ngx_configure_module
+ngx_configure_module:
+	$(nginx_conf)
+
+ngx_generate_dev_install:
+	{ \
+	  echo 'debian/rules.$(PKG_STEM) %path_prefix%/debian'; \
+	  echo 'debian/substvars.$(PKG_STEM).in %path_prefix%/debian'; \
+	} >> debian/$(PKG_DEV).install.in
+
+ifneq (,$(PKG_DEV))
+override_dh_auto_configure: ngx_generate_dev_install
+endif
+
+override_dh_auto_configure: ngx_generate_substvars
+ngx_generate_substvars:
+	{ F='Build-Depends'; V='$(PKG_VERSION)'; \
+	  sed -nr \
+	    -e "s/#.+\$$//g;" \
+	    -e "/^$${F}:/,/^\S/{s/^$${F}://;p;}" < debian/control | \
+	  sed -nr \
+	    -e "\$$!{/^.+\$$/H;d;};x;" \
+	    -e "s/(\s|\n)+/ /g;s/\s([,)])/\\1/g;s/^ //;" \
+	    -e "s/^/$(PKG_NAME):$${F}=/;p;"; \
+	  for N in $(filter libnginx-%,$(shell dh_listpackages -a)); do \
+	    echo "$${N}:Depends=$${N} (>= $${V}) | $${N} (<< $${V}.0~)"; \
+	  done; \
+	} >> debian/substvars.$(PKG_STEM).in
+
+ngx_3pm_copy_sources_nginx:
+	$(CP) $(foreach i,$(SRC_PATHS_CORE),$(NGX_SRCDIR)/$(i)) $(BUILDDIR)/
+
+ngx_3pm_copy_sources_debian: ngx_3pm_copy_sources_nginx
+	$(CP) $(wildcard /$(path_prefix)/debian/*) $(CURDIR)/debian/
+
+ngx_3pm_copy_sources_aux: ngx_3pm_copy_sources_debian
+	$(if $(NGX_3PM_DEPS),D=$(BUILDDIR)/modules; mkdir -p $${D}; \
+	$(CP) $(foreach i,$(NGX_3PM_DEPS),/usr/src/nginx-$(i)) $${D}/)
+
+ifneq (,$(NGX_3PM))
+ngx_configure_module: ngx_3pm_copy_sources_nginx
+ngx_configure_module: ngx_3pm_copy_sources_debian
+ngx_configure_module: ngx_3pm_copy_sources_aux
+endif
+
+override_dh_auto_configure: ngx_early_source_copy
+ngx_configure_module: ngx_early_source_copy
+ngx_early_source_copy:
+	D=debian/early-source; mkdir -p $${D}; \
+	P='$(if $(NGX_3PM),usr/src,%path_source%)'; \
+	for i in $(if $(NGX_3PM),$(PKG_NAME),$(SRC_PATHS_CORE)); do \
+	  $(CP) $(if $(NGX_3PM),modules/)$${i} $${D}/; \
+	  echo "$${D}/$${i} $${P}" >> debian/$(PKG_DEV).install.in; \
+	done
+
+override_dh_auto_build: ngx_merge_substvars
+ngx_merge_substvars:
+	F=debian/substvars; \
+	if [ -f "$${F}" ]; then mv -f "$${F}" "$${F}.in"; fi; \
+	cat $(wildcard $(foreach p, \
+	  common $(foreach m,$(NGX_3PM_DEPS),\
+	  mod-$(m)),debian/substvars.$(p).in \
+	)) >> "$${F}.in"
+
+override_dh_auto_build: ngx_build_module
+ngx_build_module:
+	$(MAKE) -f objs/Makefile $(if $(NGX_3PM),$(NGX_3PM_TARGET),modules)
+
+override_dh_auto_install:
+	@echo 'dh_auto_install is disabled'
+
+override_dh_installdirs:
+	@echo 'dh_installdirs is deferred after dh_install'
+
+override_dh_install:
+	@dh_install
+	@dh_installdirs -A
+	debian/dh_nginx
+
+ngx_3pm_lintian_itp:
+	for N in $(PKG_LIST); do \
+	  c="debian/$${N}.lintian-overrides"; \
+	  echo "$${N}: new-package-should-close-itp-bug" >> "$${c}"; \
+	done
+
+ifneq (,$(NGX_3PM))
+override_dh_lintian: ngx_3pm_lintian_itp
+endif
+
+override_dh_lintian:
+	@echo 'dh_lintian is deferred after dh_strip'
+
+override_dh_strip:
+	$(if $(PKG_VER_DEBUG),$(nginx_nostrip),$(nginx_strip))
+	dh_lintian
+
+ngx_push_templates:
+	@$(foreach f,$(TEMPLATED),cp -af '$(f).in' '$(f)';)
+
+ngx_prep_templates: TEMPLATED:=$(patsubst %.in,%,$(shell find debian/ -name '*.in' -type f '!' -wholename 'debian/templates/*'))
+ngx_prep_templates: ngx_push_templates
+	@$(call do_template,$(TEMPLATED))
+
+override_dh_install: ngx_prep_templates
+
+override_dh_link:
+	@dh_link
+
+override_dh_gencontrol:
+	@dh_gencontrol -- -Tdebian/substvars 2>&1 | \
+	grep -Fve 'unused substitution variable'
+
+%:
+	dh $@

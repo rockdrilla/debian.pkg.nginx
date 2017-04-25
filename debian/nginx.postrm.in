@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+D=/dev/null
+
+d_h_s() {
+  if which deb-systemd-helper >$D; then
+    deb-systemd-helper "$@"
+  fi
+}
+
+case "$1" in
+purge)
+  rm -rf '/%path_data%' '/%path_log%' '/%root_path_data%' '/%root_path_log%'
+
+  for i in nginx nginx-root; do
+    update-rc.d $i remove
+    s=${i}.service
+    d_h_s purge $s
+    d_h_s unmask $s
+  done >$D 2>$D
+;;
+remove)
+  for i in nginx nginx-root; do
+    s=${i}.service
+    d_h_s mask $s
+  done >$D 2>$D
+;;
+upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+;;
+*)
+  echo "postrm called with unknown argument \`$1'" >&2
+  exit 1
+;;
+esac
+
+if [ -d /run/systemd/system ] ; then
+  systemctl --system daemon-reload >$D || true
+fi
+
+exit 0

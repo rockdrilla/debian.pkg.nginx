@@ -1,0 +1,12 @@
+include /%path_mod_enabled%/*.conf;
+
+user %nginx_user% %nginx_run_group%;
+
+include /%path_conf_enabled%/core-*.conf;
+
+http {
+	include /%path_conf_enabled%/http-*.conf;
+	include /%path_site_enabled%/http-*.conf;
+}
+
+include /%path_conf_enabled%/module-*.conf;
