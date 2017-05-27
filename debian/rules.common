@@ -1,3 +1,4 @@
+#!/usr/bin/make -f
 MAKEFLAGS +=--no-print-directory
 
 override undefine CFLAGS
