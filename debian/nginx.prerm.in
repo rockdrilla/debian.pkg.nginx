@@ -8,7 +8,7 @@ remove)
     invoke-rc.d nginx stop || exit $?
   fi
   if [ -s '%root_file_pid%' ] && pidof /usr/sbin/nginx >$D; then
-    invoke-rc.d nginx-root stop || exit $?
+    invoke-rc.d root-nginx stop || exit $?
   fi
 ;;
 remove-in-favour|deconfigure|deconfigure-in-favour|upgrade|failed-upgrade)

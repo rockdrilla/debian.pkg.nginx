@@ -68,7 +68,7 @@ esac
 
 case "$1" in
 configure|abort-upgrade)
-  for i in nginx nginx-root; do
+  for i in nginx root-nginx; do
     [ -x "/etc/init.d/$i" ] || continue
     update-rc.d $i defaults || exit $?
   done >$D
@@ -94,7 +94,7 @@ for i in nginx; do
   fi
 done >$D 2>$D
 
-for i in nginx nginx-root; do
+for i in nginx root-nginx; do
   s=${i}.service
   if d_h_s debian-installed $s; then
     d_h_s unmask $s || true

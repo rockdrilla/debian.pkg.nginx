@@ -12,7 +12,7 @@ case "$1" in
 purge)
   rm -rf '/%path_data%' '/%path_log%' '/%root_path_data%' '/%root_path_log%'
 
-  for i in nginx nginx-root; do
+  for i in nginx root-nginx; do
     update-rc.d $i remove
     s=${i}.service
     d_h_s purge $s
@@ -20,7 +20,7 @@ purge)
   done >$D 2>$D
 ;;
 remove)
-  for i in nginx nginx-root; do
+  for i in nginx root-nginx; do
     s=${i}.service
     d_h_s mask $s
   done >$D 2>$D

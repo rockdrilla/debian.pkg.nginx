@@ -13,7 +13,7 @@ nginx)
   conf=%file_config%
   pid=%file_pid%
 ;;
-nginx-root)
+root-nginx)
   conf=%root_file_config%
   pid=%root_file_pid%
   DAEMON_OPTS=${DAEMON_OPTS}${DAEMON_OPTS:+' '}"-c ${conf}"

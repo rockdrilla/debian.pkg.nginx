@@ -15,10 +15,10 @@ triggered)
       invoke-rc.d nginx reload || true
     fi
   fi
-  if [ -x /etc/init.d/nginx-root ]; then
+  if [ -x /etc/init.d/root-nginx ]; then
     if [ -s "${pid_root}" ] && pidof /usr/sbin/nginx >$D; then
-      echo "Triggering nginx-root reload ..."
-      invoke-rc.d nginx-root reload || true
+      echo "Triggering root-nginx reload ..."
+      invoke-rc.d root-nginx reload || true
     fi
   fi
   exit 0
@@ -36,9 +36,9 @@ if [ -x /etc/init.d/nginx ]; then
   fi
 fi
 
-if [ -x /etc/init.d/nginx-root ]; then
+if [ -x /etc/init.d/root-nginx ]; then
   if [ -s "${pid_root}" ] && pidof /usr/sbin/nginx >$D; then
-    invoke-rc.d nginx-root upgrade || invoke-rc.d nginx-root restart
+    invoke-rc.d root-nginx upgrade || invoke-rc.d root-nginx restart
     exit $?
   fi
 fi
