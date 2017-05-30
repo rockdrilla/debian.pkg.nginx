@@ -34,6 +34,7 @@ ngx_configure_binary:
 	$(nginx_conf)
 
 override_dh_auto_build: ngx_build_binary
+ngx_build_binary: MAKEFLAGS +=-j$(NUMJOBS)
 ngx_build_binary:
 	$(MAKE) -C $(BUILDDIR_bin) -f objs/Makefile binary manpage
 
