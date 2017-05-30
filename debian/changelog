@@ -1,3 +1,11 @@
+nginx (1:1.13.0-2) experimental; urgency=medium
+
+  * Set default SSL cache size to 1M (was 4M).
+  * Fix lintian warnings.
+  * Speedup build.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 30 May 2017 21:06:07 +0300
+
 nginx (1:1.13.0-1) experimental; urgency=high
 
   * Initial release of reworked nginx package.
