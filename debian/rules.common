@@ -411,16 +411,6 @@ override_dh_install:
 	@dh_installdirs -A
 	debian/dh_nginx
 
-ngx_3pm_lintian_itp:
-	for N in $(PKG_LIST); do \
-	  c="debian/$${N}.lintian-overrides"; \
-	  echo "$${N}: new-package-should-close-itp-bug" >> "$${c}"; \
-	done
-
-ifneq (,$(NGX_3PM))
-override_dh_lintian: ngx_3pm_lintian_itp
-endif
-
 override_dh_lintian:
 	@echo 'dh_lintian is deferred after dh_strip'
 

@@ -76,13 +76,6 @@ ngx_create_aux_links_binary:
 	  ln -sf nginx-bin $${p}/$${N}; \
 	done
 
-override_dh_lintian: ngx_lintian_itp
-ngx_lintian_itp:
-	for N in $(PKG_STANDALONE); do \
-	  echo "$${N}: new-package-should-close-itp-bug" \
-	    >> debian/$${N}.lintian-overrides; \
-	done
-
 override_dh_installlogrotate:
 	for I in nginx root-nginx; do \
 	  dh_installlogrotate --package=nginx --name=$$I; \
