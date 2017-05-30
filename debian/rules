@@ -82,17 +82,6 @@ ngx_lintian_itp:
 	    >> debian/$${N}.lintian-overrides; \
 	done
 
-override_dh_lintian: ngx_lintian_init
-ngx_lintian_init:
-	for I in nginx root-nginx; do \
-	  echo "nginx: init.d-script-does-not-implement-optional-option etc/init.d/$$I status"; \
-	  for A in start stop restart force-reload; do \
-	    echo "nginx: init.d-script-does-not-implement-required-option etc/init.d/$$I $$A"; \
-	  done; \
-	  echo "nginx: init.d-script-does-not-source-init-functions etc/init.d/$$I"; \
-	  echo "nginx: script-in-etc-init.d-not-registered-via-update-rc.d etc/init.d/$$I"; \
-	done >> debian/nginx.lintian-overrides
-
 override_dh_installlogrotate:
 	for I in nginx root-nginx; do \
 	  dh_installlogrotate --package=nginx --name=$$I; \
