@@ -324,14 +324,14 @@ ngx_build_module:
 	$(MAKE) -f objs/Makefile $(if $(NGX_3PM),$(NGX_3PM_TARGET),modules)
 
 override_dh_auto_install:
-	@echo 'dh_auto_install is disabled'
+	@echo '## dh_auto_install is disabled'
 
 override_dh_installdirs:
-	@echo 'dh_installdirs is deferred after dh_install'
+	@echo '## dh_installdirs is deferred after dh_install (quirk)'
 
 override_dh_install:
 	@dh_install
-	@dh_installdirs -A
+	@echo '## run dh_installdirs'; dh_installdirs -A
 	debian/dh_nginx
 
 ## KrD: begin section with Debian Policy violations
@@ -476,11 +476,10 @@ override_dh_strip: override_dh_strip_lintian_overrides
 endif
 
 override_dh_lintian:
-	@echo '## dh_lintian is deferred after dh_strip'
+	@echo '## dh_lintian is deferred after dh_strip (quirk)'
 
 override_dh_strip:
-	@echo '## run dh_lintian'
-	dh_lintian
+	@echo '## run dh_lintian'; dh_lintian
 
 ## KrD: end section with Debian Policy violations
 
