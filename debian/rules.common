@@ -237,83 +237,6 @@ define nginx_postconf =
     objs/ngx_auto_config.h
 endef
 
-## KrD: port of dh_strip
-define nginx_find_sharedlibs =
-  find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
-    -xdev -type f \
-    -regextype egrep \
-    -iregex '^.*\.(so.*?|cmxs|node)$$' \
-    '!' -iregex '^.*debug/.*\.so.*?$$' \
-    -exec file -F '|' -N '{}' '+' | \
-  grep -Ee '^[^|]+\|.*ELF.*shared' | \
-  grep -Ee '^[^|]+\|.*not stripped' | \
-  cut -d '|' -f 1
-endef
-
-## KrD: port of dh_strip
-define nginx_find_binaries =
-  find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
-    -xdev -type f \
-    -perm /0111 \
-    -exec file -F '|' -N '{}' '+' | \
-  grep -Ee '^[^|]+\|.*ELF.*(executable|shared)' | \
-  grep -Ee '^[^|]+\|.*not stripped' | \
-  cut -d '|' -f 1
-endef
-
-## KrD: port of dh_strip
-define nginx_find_staticlibs =
-  find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
-    -xdev -type f \
-    -regextype egrep \
-    -iregex '^.*/lib[^/]*\.a$$' \
-    '!' -iregex '^.*_g\.a$$' \
-    -exec file -F '|' -N '{}' '+' | \
-  grep -Ee '^[^|]+\|.* ar archive' | \
-  cut -d '|' -f 1
-endef
-
-## KrD: dirty lintian hack
-define nginx_lintian_unstripped =
-  while read L; do \
-    eval $$(echo "$${L}" | \
-      sed -re 's$(X)^debian/([^/]+)/(.*)\$$$(X)N='\1';F='\2'$(X)'); \
-    grep -Eqe "^Package: $${N}$$" || continue; \
-    c="debian/$${N}.lintian-overrides"; \
-    echo "$${N}: unstripped-binary-or-object $${F}" >> "$${c}"; \
-  done
-endef
-
-define nginx_strip =
-  $(nginx_find_sharedlibs) | \
-  xargs -r -L 1 $(STRIP) \
-    --remove-section=.comment \
-    --remove-section=.note \
-    --strip-unneeded \
-  || true; \
-  $(nginx_find_binaries) | \
-  xargs -r -L 1 $(STRIP) \
-    --remove-section=.comment \
-    --remove-section=.note \
-  || true; \
-  $(nginx_find_staticlibs) | \
-  xargs -r -L 1 $(STRIP) \
-    --remove-section=.comment \
-    --remove-section=.note \
-    --strip-debug \
-    --enable-deterministic-archives \
-  || true
-endef
-
-define nginx_nostrip =
-  $(nginx_find_sharedlibs) | \
-  $(nginx_lintian_unstripped) ; \
-  $(nginx_find_binaries) | \
-  $(nginx_lintian_unstripped) ; \
-  $(nginx_find_staticlibs) | \
-  $(nginx_lintian_unstripped)
-endef
-
 valid_name :='^[a-zA-Z_][a-zA-Z0-9_]*$$'
 define do_template =
   :;F='$(1)';$(strip $(foreach v,$(.VARIABLES),\
@@ -411,12 +334,155 @@ override_dh_install:
 	@dh_installdirs -A
 	debian/dh_nginx
 
+## KrD: begin section with Debian Policy violations
+
+find_shared :=\
+  -regextype egrep \
+  -iregex '^.*\.(so.*?|cmxs|node)$$' \
+  '!' -iregex '^.*debug/.*\.so.*?$$'
+find_binary :=\
+  -perm /0111
+find_static :=\
+  -regextype egrep \
+  -iregex '^.*/lib[^/]*\.a$$' \
+  '!' -iregex '^.*_g\.a$$'
+
+file_type :=\
+  xargs -r -d '\n' -n 1 \
+  file -F '|' -N
+
+file_filter_shared :=\
+  grep -Ee '^[^|]+\|.*ELF.*shared' | \
+  grep -Ee '^[^|]+\|.*not stripped' | \
+  cut -d '|' -f 1
+file_filter_binary :=\
+  grep -Ee '^[^|]+\|.*ELF.*(executable|shared)' | \
+  grep -Ee '^[^|]+\|.*not stripped' | \
+  cut -d '|' -f 1
+file_filter_static :=\
+  grep -Ee '^[^|]+\|.* ar archive' | \
+  cut -d '|' -f 1
+
+collect_unstripped_elf_files:
+	@echo '## collect unstripped files'; \
+	Z='debian/tmpfiles'; \
+	find $(wildcard $(foreach p,$(PKG_LIST),debian/$(p)/)) \
+	  -xdev \
+	  '(' -type f $(find_shared) -fprint $$Z.shared.0 ')' \
+	  ',' \
+	  '(' -type f $(find_binary) -fprint $$Z.binary.0 ')' \
+	  ',' \
+	  '(' -type f $(find_static) -fprint $$Z.static.0 ')' \
+	; \
+	sort -u < $$Z.shared.0 > $$Z.shared.1; \
+	sort -u < $$Z.binary.0 > $$Z.binary.1; \
+	sort -u < $$Z.static.0 > $$Z.static.1; \
+	cat $$Z.shared.1 | $(file_type) > $$Z.shared.2; \
+	cat $$Z.binary.1 | $(file_type) > $$Z.binary.2; \
+	cat $$Z.static.1 | $(file_type) > $$Z.static.2; \
+	cat $$Z.shared.2 | $(file_filter_shared) > $$Z.ack.shared; \
+	cat $$Z.binary.2 | $(file_filter_binary) > $$Z.ack.binary; \
+	cat $$Z.static.2 | $(file_filter_static) > $$Z.ack.static; \
+	comm -3 $$Z.shared.1 $$Z.ack.shared > $$Z.nack.shared; \
+	comm -3 $$Z.binary.1 $$Z.ack.binary > $$Z.nack.binary; \
+	comm -3 $$Z.static.1 $$Z.ack.static > $$Z.nack.static; \
+	if [ -s "$$Z.nack.shared" ]; then \
+	  echo '## list of unacknowledged shared libraries:'; \
+	  xargs -r -d '\n' ls -lgG < $$Z.nack.shared > $$Z.shared.3; \
+	  cat $$Z.nack.shared | \
+	  xargs -r -d '\n' -n 1 -I % sh -c \
+	  "grep -Ee ' %\$$' $$Z.shared.3 | tr -d '\n' || exit 0; echo -n ' |'; \
+	   grep -Fe '%|' $$Z.shared.2 | cut -d '|' -f 2 | cut -d ',' -f 1;" | \
+	  sed -re 's$(X)debian/$(X)$(X)'; \
+	fi; \
+	if [ -s "$$Z.nack.binary" ]; then \
+	  echo '## list of unacknowledged executables:'; \
+	  xargs -r -d '\n' ls -lgG < $$Z.nack.binary > $$Z.binary.3; \
+	  cat $$Z.nack.binary | \
+	  xargs -r -d '\n' -n 1 -I % sh -c \
+	  "grep -Ee ' %\$$' $$Z.binary.3 | tr -d '\n' || exit 0; echo -n ' |'; \
+	   grep -Fe '%|' $$Z.binary.2 | cut -d '|' -f 2 | cut -d ',' -f 1;" | \
+	  sed -re 's$(X)debian/$(X)$(X)'; \
+	fi; \
+	if [ -s "$$Z.nack.static" ]; then \
+	  echo '## list of unacknowledged static libraries:'; \
+	  xargs -r -d '\n' ls -lgG < $$Z.nack.static > $$Z.static.3; \
+	  cat $$Z.nack.static | \
+	  xargs -r -d '\n' -n 1 -I % sh -c \
+	  "grep -Ee ' %\$$' $$Z.static.3 | tr -d '\n' || exit 0; echo -n ' |'; \
+	   grep -Fe '%|' $$Z.static.2 | cut -d '|' -f 2 | cut -d ',' -f 1;" | \
+	  sed -re 's$(X)debian/$(X)$(X)'; \
+	fi; \
+	find debian/ \
+	  -xdev -type f \
+	  -regextype egrep \
+	  -regex "^$$Z\.(shared|binary|static).*\$$" \
+	  -delete \
+	;
+
+strip_shared :=$(STRIP) \
+  --remove-section=.comment \
+  --remove-section=.note \
+  --strip-unneeded
+strip_binary :=$(STRIP) \
+  --remove-section=.comment \
+  --remove-section=.note
+strip_static :=$(STRIP) \
+  --remove-section=.comment \
+  --remove-section=.note \
+  --strip-debug \
+  --enable-deterministic-archives
+
+override_dh_strip_rough_strip: collect_unstripped_elf_files
+	@echo '## strip files without saving debug information'; \
+	Z='debian/tmpfiles.ack'; \
+	if [ -s "$$Z.shared" ]; then \
+	  echo '## strip shared libraries:'; \
+	  cat $$Z.shared | xargs -r -d '\n' -n 1 -I % sh -c \
+	  $(strip 'echo %; $(strip_shared) %;') || true; \
+	fi; \
+	if [ -s "$$Z.binary" ]; then \
+	  echo '## strip executables:'; \
+	  cat $$Z.binary | xargs -r -d '\n' -n 1 -I % sh -c \
+	  $(strip 'echo %; $(strip_binary) %;') || true; \
+	fi; \
+	if [ -s "$$Z.static" ]; then \
+	  echo '## strip static libraries:'; \
+	  cat $$Z.static | xargs -r -d '\n' -n 1 -I % sh -c \
+	  $(strip 'echo %; $(strip_static) %;') || true; \
+	fi; \
+
+lintian_unstripped_base =:\
+  cut -d '/' -f 2 | sort -u | xargs -r -n 1 -I % sh -c
+lintian_unstripped_shared =:\
+  $(lintian_unstripped_base) \
+  'echo unstripped-binary-or-object >> debian/%.lintian-overrides'
+lintian_unstripped_static =:\
+  $(lintian_unstripped_base) \
+  'echo unstripped-static-library >> debian/%.lintian-overrides'
+
+override_dh_strip_lintian_overrides: collect_unstripped_elf_files
+	@echo '## adding lintian overrides instead of stripping files'; \
+	Z='debian/tmpfiles.ack'; \
+	cat $$Z.shared $$Z.binary | \
+	$(lintian_unstripped_shared); \
+	cat $$Z.static | \
+	$(lintian_unstripped_static);
+
+ifeq (,$(PKG_VER_DEBUG))
+override_dh_strip: override_dh_strip_rough_strip
+else
+override_dh_strip: override_dh_strip_lintian_overrides
+endif
+
 override_dh_lintian:
-	@echo 'dh_lintian is deferred after dh_strip'
+	@echo '## dh_lintian is deferred after dh_strip'
 
 override_dh_strip:
-	$(if $(PKG_VER_DEBUG),$(nginx_nostrip),$(nginx_strip))
+	@echo '## run dh_lintian'
 	dh_lintian
+
+## KrD: end section with Debian Policy violations
 
 ngx_push_templates:
 	@$(foreach f,$(TEMPLATED),cp -af '$(f).in' '$(f)';)
