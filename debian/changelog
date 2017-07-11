@@ -1,3 +1,12 @@
+nginx (1:1.13.3-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Cherry-pick upstream patches:
+    - [core] disabled SO_REUSEPORT when testing config (ticket #1300)
+    - [core] fixed error message on setsockopt(SO_REUSEPORT) failure
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 12 Jul 2017 00:45:02 +0300
+
 nginx (1:1.13.2-1) experimental; urgency=medium
 
   * New upstream release.
