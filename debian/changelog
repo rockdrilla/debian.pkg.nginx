@@ -1,3 +1,9 @@
+nginx (1:1.13.3-2) experimental; urgency=medium
+
+  * Switch to OpenSSL 1.0.x branch (for a while).
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 24 Jul 2017 09:07:29 +0300
+
 nginx (1:1.13.3-1) experimental; urgency=medium
 
   * New upstream release.

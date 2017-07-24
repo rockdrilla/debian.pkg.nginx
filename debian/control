@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 10),
  libgeoip-dev,
  libpcre3-dev,
  libperl-dev,
- libssl-dev (>= 1.1.0),
+ libssl1.0-dev (>= 1.0.2),
  libxslt1-dev,
  zlib1g-dev
 Standards-Version: 3.9.8.0
