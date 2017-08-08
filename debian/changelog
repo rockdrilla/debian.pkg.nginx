@@ -1,3 +1,10 @@
+nginx (1:1.13.4-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Drop cherry-picked patches.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 08 Aug 2017 22:24:07 +0300
+
 nginx (1:1.13.3-4) experimental; urgency=medium
 
   * Remove hackish code which violates Debian Policy;
