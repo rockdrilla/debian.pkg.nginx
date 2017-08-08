@@ -7,7 +7,6 @@ override undefine LDFLAGS
 
 export DH_VERBOSE:=1
 override undefine DEB_BUILD_MAINT_OPTIONS
-export DEB_BUILD_OPTIONS +=noautodbgsym
 export DEB_LDFLAGS_MAINT_APPEND +=-Wl,-z,noexecstack
 
 ## KrD: char 027 (0x17) is seemed to be safe separator for sed "s" command;
