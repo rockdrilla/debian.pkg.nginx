@@ -1,0 +1,3 @@
+## https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-Content-Type-Options
+
+add_header "X-Content-Type-Options" "nosniff" always;

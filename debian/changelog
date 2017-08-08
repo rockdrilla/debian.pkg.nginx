@@ -1,3 +1,14 @@
+nginx (1:1.13.3-3) experimental; urgency=medium
+
+  * Add common HTTP snippets.
+  * Clarify {http,mail,stream}-ssl configuration.
+  * Hide "Accept-Encoding" HTTP header from FastCGI backend.
+  * Clarify snippet names (rename files):
+    - "common-fastcgi" -> "common-fcgiwrap"
+    - "common-cgi"     -> "common-fastcgi"
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 08 Aug 2017 12:29:29 +0300
+
 nginx (1:1.13.3-2) experimental; urgency=medium
 
   * Switch to OpenSSL 1.0.x branch (for a while).

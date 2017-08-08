@@ -1,2 +1,15 @@
-fastcgi_pass unix:/run/fcgiwrap.socket;
-include snippets/common-cgi;
+try_files $fastcgi_script_name =444;
+
+## KrD: do not pass Accept-Encoding to backend
+fastcgi_param  HTTP_ACCEPT_ENCODING  "";
+
+## Bypass the fact that try_files resets $fastcgi_path_info
+## see: http://trac.nginx.org/nginx/ticket/321
+set $path_info $fastcgi_path_info;
+fastcgi_param  PATH_INFO    $path_info;
+
+fastcgi_param  AUTH_USER    $remote_user;
+fastcgi_param  REMOTE_USER  $remote_user;
+fastcgi_param  HTTP_HOST    $host;
+
+include fastcgi.conf;

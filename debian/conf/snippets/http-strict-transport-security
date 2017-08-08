@@ -1,0 +1,4 @@
+## https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Strict_Transport_Security
+
+## 1 year
+add_header "Strict-Transport-Security" "max-age=31708800; includeSubDomains; preload" always;

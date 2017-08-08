@@ -1,0 +1,3 @@
+## https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cross-origin_Resource_Sharing
+
+add_header "Access-Control-Allow-Origin" "$scheme://$server_name" always;
