@@ -1,3 +1,10 @@
+nginx (1:1.13.3-4) experimental; urgency=medium
+
+  * Remove hackish code which violates Debian Policy;
+    now packages are built with debug information.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 08 Aug 2017 16:33:46 +0300
+
 nginx (1:1.13.3-3) experimental; urgency=medium
 
   * Add common HTTP snippets.
