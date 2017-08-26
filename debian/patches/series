@@ -1,3 +1,7 @@
-0001-define_gnu_source-on-other-glibc-based-platforms.patch
-0101-configure-trim-whitespaces.patch
-0102-control-compiler-flags.patch
+0001-SSL-the-ssl_client_escaped_cert-variable-ticket-857.patch
+0002-SSL-fixed-possible-use-after-free-in-ssl_server_name.patch
+0003-Upstream-unconditional-parsing-of-last_modified_time.patch
+0004-Secure-link-fixed-stack-buffer-overflow.patch
+0101-define_gnu_source-on-other-glibc-based-platforms.patch
+0201-configure-trim-whitespaces.patch
+0202-control-compiler-flags.patch

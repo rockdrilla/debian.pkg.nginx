@@ -1,0 +1,90 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Tue, 22 Aug 2017 15:18:10 +0300
+Subject: SSL: the $ssl_client_escaped_cert variable (ticket #857).
+
+This variable contains URL-encoded client SSL certificate.  In contrast
+to $ssl_client_cert, it doesn't depend on deprecated header continuation.
+The NGX_ESCAPE_URI_COMPONENT variant of encoding is used, so the resulting
+variable can be safely used not only in headers, but also as a request
+argument.
+
+The $ssl_client_cert variable should be considered deprecated now.
+The $ssl_client_raw_cert variable will be eventually renambed back
+to $ssl_client_cert.
+
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -3660,6 +3660,36 @@ ngx_ssl_get_certificate(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ 
+ 
+ ngx_int_t
++ngx_ssl_get_escaped_certificate(ngx_connection_t *c, ngx_pool_t *pool,
++    ngx_str_t *s)
++{
++    ngx_str_t  cert;
++    uintptr_t  n;
++
++    if (ngx_ssl_get_raw_certificate(c, pool, &cert) != NGX_OK) {
++        return NGX_ERROR;
++    }
++
++    if (cert.len == 0) {
++        s->len = 0;
++        return NGX_OK;
++    }
++
++    n = ngx_escape_uri(NULL, cert.data, cert.len, NGX_ESCAPE_URI_COMPONENT);
++
++    s->len = cert.len + n * 2;
++    s->data = ngx_pnalloc(pool, s->len);
++    if (s->data == NULL) {
++        return NGX_ERROR;
++    }
++
++    ngx_escape_uri(s->data, cert.data, cert.len, NGX_ESCAPE_URI_COMPONENT);
++
++    return NGX_OK;
++}
++
++
++ngx_int_t
+ ngx_ssl_get_subject_dn(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ {
+     BIO        *bio;
+--- a/src/event/ngx_event_openssl.h
++++ b/src/event/ngx_event_openssl.h
+@@ -212,6 +212,8 @@ ngx_int_t ngx_ssl_get_raw_certificate(ngx_connection_t *c, ngx_pool_t *pool,
+     ngx_str_t *s);
+ ngx_int_t ngx_ssl_get_certificate(ngx_connection_t *c, ngx_pool_t *pool,
+     ngx_str_t *s);
++ngx_int_t ngx_ssl_get_escaped_certificate(ngx_connection_t *c, ngx_pool_t *pool,
++    ngx_str_t *s);
+ ngx_int_t ngx_ssl_get_subject_dn(ngx_connection_t *c, ngx_pool_t *pool,
+     ngx_str_t *s);
+ ngx_int_t ngx_ssl_get_issuer_dn(ngx_connection_t *c, ngx_pool_t *pool,
+--- a/src/http/modules/ngx_http_ssl_module.c
++++ b/src/http/modules/ngx_http_ssl_module.c
+@@ -299,6 +299,10 @@ static ngx_http_variable_t  ngx_http_ssl_vars[] = {
+       (uintptr_t) ngx_ssl_get_raw_certificate,
+       NGX_HTTP_VAR_CHANGEABLE, 0 },
+ 
++    { ngx_string("ssl_client_escaped_cert"), NULL, ngx_http_ssl_variable,
++      (uintptr_t) ngx_ssl_get_escaped_certificate,
++      NGX_HTTP_VAR_CHANGEABLE, 0 },
++
+     { ngx_string("ssl_client_s_dn"), NULL, ngx_http_ssl_variable,
+       (uintptr_t) ngx_ssl_get_subject_dn, NGX_HTTP_VAR_CHANGEABLE, 0 },
+ 
+--- a/src/stream/ngx_stream_ssl_module.c
++++ b/src/stream/ngx_stream_ssl_module.c
+@@ -249,6 +249,10 @@ static ngx_stream_variable_t  ngx_stream_ssl_vars[] = {
+       (uintptr_t) ngx_ssl_get_raw_certificate,
+       NGX_STREAM_VAR_CHANGEABLE, 0 },
+ 
++    { ngx_string("ssl_client_escaped_cert"), NULL, ngx_stream_ssl_variable,
++      (uintptr_t) ngx_ssl_get_escaped_certificate,
++      NGX_STREAM_VAR_CHANGEABLE, 0 },
++
+     { ngx_string("ssl_client_s_dn"), NULL, ngx_stream_ssl_variable,
+       (uintptr_t) ngx_ssl_get_subject_dn, NGX_STREAM_VAR_CHANGEABLE, 0 },
+ 

@@ -1,7 +1,6 @@
-Trim whitespaces in variables during configuration
+From: Konstantin Demin <rockdrilla@gmail.com>
+Subject: trim whitespaces in variables during configuration
 
---
-Konstantin Demin <rockdrilla@gmail.com>
 --- a/auto/cc/clang
 +++ b/auto/cc/clang
 @@ -5,8 +5,8 @@

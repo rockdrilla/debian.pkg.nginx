@@ -1,3 +1,13 @@
+nginx (1:1.13.4-2) experimental; urgency=medium
+
+  * Cherry-pick upstream patches:
+    - SSL: the $ssl_client_escaped_cert variable
+    - SSL: fixed possible use-after-free in $ssl_server_name
+    - Upstream: unconditional parsing of last_modified_time
+    - Secure link: fixed stack buffer overflow
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 23 Aug 2017 19:52:16 +0300
+
 nginx (1:1.13.4-1) experimental; urgency=medium
 
   * New upstream release.

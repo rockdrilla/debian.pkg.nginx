@@ -1,0 +1,48 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Wed, 23 Aug 2017 19:20:06 +0300
+Subject: Upstream: unconditional parsing of last_modified_time.
+
+This fixes at least the following cases, where no last_modified_time
+(assuming caching is not enabled) resulted in incorrect behaviour:
+
+- slice filter and If-Range requests (ticket #1357);
+- If-Range requests with proxy_force_ranges;
+- expires modified.
+
+--- a/src/http/ngx_http_upstream.c
++++ b/src/http/ngx_http_upstream.c
+@@ -4390,15 +4390,8 @@ ngx_http_upstream_process_last_modified(ngx_http_request_t *r,
+     u = r->upstream;
+ 
+     u->headers_in.last_modified = h;
+-
+-#if (NGX_HTTP_CACHE)
+-
+-    if (u->cacheable) {
+-        u->headers_in.last_modified_time = ngx_parse_http_time(h->value.data,
+-                                                               h->value.len);
+-    }
+-
+-#endif
++    u->headers_in.last_modified_time = ngx_parse_http_time(h->value.data,
++                                                           h->value.len);
+ 
+     return NGX_OK;
+ }
+@@ -4940,15 +4933,8 @@ ngx_http_upstream_copy_last_modified(ngx_http_request_t *r, ngx_table_elt_t *h,
+     *ho = *h;
+ 
+     r->headers_out.last_modified = ho;
+-
+-#if (NGX_HTTP_CACHE)
+-
+-    if (r->upstream->cacheable) {
+-        r->headers_out.last_modified_time =
++    r->headers_out.last_modified_time =
+                                     r->upstream->headers_in.last_modified_time;
+-    }
+-
+-#endif
+ 
+     return NGX_OK;
+ }
