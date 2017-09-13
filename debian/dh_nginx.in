@@ -124,6 +124,8 @@ for PKG_FILE in ${PKG_FILES}; do
 
 			P="${PKG_DIR}/%path_dynmod%"
 			mkdir -p "$P/"
+
+			echo "#prio=${MOD_PRIO}" >> "${PKG_DIR}${MOD_CONF}"
 			for i in ${MOD_FILES}; do
 				echo "load_module modules/${i##*/};" >> "${PKG_DIR}${MOD_CONF}"
 				cp --reflink=auto -a "$i" "$P/"
