@@ -1,3 +1,15 @@
+nginx (1:1.13.5-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Drop cherry-picked patches.
+  * Cherry-pick upstream patches:
+    - Stream: relaxed next upstream condition (ticket #1317).
+    - HTTP/2: signal 0-byte HPACK's dynamic table size.
+    - Fixed ngx_gmtime() on 32-bit platforms with 64-bit time_t.
+    - Introduced time truncation to December 31, 9999 (ticket #1368).
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 13 Sep 2017 19:26:12 +0300
+
 nginx (1:1.13.4-2) experimental; urgency=medium
 
   * Cherry-pick upstream patches:
