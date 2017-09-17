@@ -4,6 +4,10 @@
 0004-fixed-reference-to-time-parsing-code-after-8b6fa4842133.patch
 0005-fixed-ngx_gmtime-on-32-bit-platforms-with-64-bit-time_t.patch
 0006-introduced-time-truncation-to-december-31-9999-ticket-1368.patch
+0007-stream-fixed-logging-udp-upstream-timeout.patch
+0008-http-2-added-logging-of-400-bad-request-reasons.patch
+0009-http-2-fixed-debug-log-about-indexed-headers.patch
+0010-http-2-shortened-some-debug-log-messages.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch

@@ -1,0 +1,21 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Thu, 14 Sep 2017 19:06:05 +0300
+Subject: HTTP/2: fixed debug log about indexed headers.
+
+Previously, "get indexed header" message was logged when in fact only
+header name was obtained using an index, and "get indexed header name"
+was logged when full header representation (name and value) was obtained
+using an index.  Fixed version logs "get indexed name" and "get indexed
+header" respectively.
+
+--- a/src/http/v2/ngx_http_v2_table.c
++++ b/src/http/v2/ngx_http_v2_table.c
+@@ -102,7 +102,7 @@ ngx_http_v2_get_indexed_header(ngx_http_v2_connection_t *h2c, ngx_uint_t index,
+ 
+     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
+                    "http2 get indexed %s: %ui",
+-                   name_only ? "header" : "header name", index);
++                   name_only ? "name" : "header", index);
+ 
+     index--;
+ 

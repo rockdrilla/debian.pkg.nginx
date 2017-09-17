@@ -1,3 +1,13 @@
+nginx (1:1.13.5-2) experimental; urgency=medium
+
+  * Cherry-pick upstream patches:
+    - Stream: fixed logging UDP upstream timeout.
+    - HTTP/2: added logging of 400 (Bad Request) reasons.
+    - HTTP/2: fixed debug log about indexed headers.
+    - HTTP/2: shortened some debug log messages.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 18 Sep 2017 00:36:14 +0300
+
 nginx (1:1.13.5-1) experimental; urgency=medium
 
   * New upstream release.
