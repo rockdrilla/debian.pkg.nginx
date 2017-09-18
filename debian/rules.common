@@ -336,4 +336,4 @@ override_dh_gencontrol:
 	grep -Fve 'unused substitution variable'
 
 %:
-	dh --without autoreconf $@
+	dh $@ --without autoreconf
