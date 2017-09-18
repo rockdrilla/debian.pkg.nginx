@@ -1,3 +1,10 @@
+nginx (1:1.13.5-3) UNRELEASED; urgency=medium
+
+  * Cherry-pick upstream patch:
+    - Removed more remnants of the old pthread implementation.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 18 Sep 2017 13:02:03 +0300
+
 nginx (1:1.13.5-2) experimental; urgency=medium
 
   * Cherry-pick upstream patches:

@@ -8,6 +8,7 @@
 0008-http-2-added-logging-of-400-bad-request-reasons.patch
 0009-http-2-fixed-debug-log-about-indexed-headers.patch
 0010-http-2-shortened-some-debug-log-messages.patch
+0011-removed-more-remnants-of-the-old-pthread-implementation.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
