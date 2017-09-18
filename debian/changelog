@@ -4,6 +4,7 @@ nginx (1:1.13.5-3) UNRELEASED; urgency=medium
     - Removed more remnants of the old pthread implementation.
   * Remove upstart-related files.
   * Explicitly disable autoreconf.
+  * Switch Priority of all packages to optional.
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 18 Sep 2017 13:02:03 +0300
 

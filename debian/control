@@ -63,7 +63,6 @@ Description: Nginx - standalone executable
 
 Package: libnginx-http-geoip
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
 Enhances: nginx-bin
 Provides: nginx-module
@@ -74,7 +73,6 @@ Description: Nginx - HTTP GeoIP module
 
 Package: libnginx-http-image-filter
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
 Enhances: nginx-bin
 Provides: nginx-module
@@ -85,7 +83,6 @@ Description: Nginx - HTTP Image Filter module
 
 Package: libnginx-http-perl
 Architecture: any
-Priority: extra
 Depends: ${nginx:Depends}, ${perl:Depends}, ${shlibs:Depends}, ${misc:Depends}
 Enhances: nginx-bin
 Provides: nginx-module
@@ -96,7 +93,6 @@ Description: Nginx - HTTP Perl module
 
 Package: libnginx-http-xslt-filter
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
 Enhances: nginx-bin
 Provides: nginx-module
@@ -107,7 +103,6 @@ Description: Nginx - HTTP XSLT Transformation module
 
 Package: libnginx-mail
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
 Enhances: nginx-bin
 Provides: nginx-module
@@ -120,7 +115,6 @@ Description: Nginx - Mail modules
 
 Package: libnginx-stream
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${nginx:Depends}
 Suggests: libnginx-stream-geoip
 Enhances: nginx-bin
@@ -136,7 +130,6 @@ Description: Nginx - Stream modules (except GeoIP)
 
 Package: libnginx-stream-geoip
 Architecture: any
-Priority: extra
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${libnginx-stream:Depends}
 Enhances: libnginx-stream
 Provides: nginx-module
