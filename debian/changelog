@@ -3,6 +3,7 @@ nginx (1:1.13.5-3) UNRELEASED; urgency=medium
   * Cherry-pick upstream patch:
     - Removed more remnants of the old pthread implementation.
   * Remove upstart-related files.
+  * Explicitly disable autoreconf.
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 18 Sep 2017 13:02:03 +0300
 
