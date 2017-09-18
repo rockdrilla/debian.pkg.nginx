@@ -10,7 +10,7 @@
 # Description:       starts nginx using start-stop-daemon
 ### END INIT INFO
 
-NAME=root-nginx
+NAME='root-nginx'
 DESC='nginx - high performance web/proxy server (ROOT INSTANCE)'
 
 . /%path_prefix%/init-functions
