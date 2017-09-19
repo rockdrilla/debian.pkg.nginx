@@ -1,10 +1,11 @@
+set -e
+
 . /lib/init/vars.sh
 . /lib/lsb/init-functions
 
 PATH='/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
 DAEMON='%file_binary%'
 
-set -e
 [ -x "${DAEMON}" ]
 
 case "${NAME}" in

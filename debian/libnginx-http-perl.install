@@ -1,4 +1,5 @@
-#!/bin/sh -e
+#!/bin/sh
+set -e
 eval "$(perl -V:vendorarch)"
 echo "objs/src/http/modules/perl/blib/arch/auto/nginx/* ${vendorarch}/auto/nginx"
 echo "objs/src/http/modules/perl/blib/lib/nginx.pm ${vendorarch}"
