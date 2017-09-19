@@ -3,4 +3,3 @@ conf/* %path_conf%
 debian/conf/* %path_conf%
 debian/ufw/nginx etc/ufw/applications.d
 debian/vim/nginx.yaml usr/share/vim/registry
-debian/scripts/init-functions %path_prefix%

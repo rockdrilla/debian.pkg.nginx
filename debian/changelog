@@ -1,6 +1,10 @@
 nginx (1:1.13.5-4) UNRELEASED; urgency=medium
 
   * Fix shell scripts (enforce '-e' option).
+  * Produce full sysvinit scripts during build;
+    previously, common sysvinit functions were placed in separate file in
+    /usr/share/nginx/, but after 'nginx' package removal the init scripts
+    were broken.
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 19 Sep 2017 12:50:46 +0300
 

@@ -13,4 +13,3 @@
 NAME='nginx'
 DESC='nginx - high performance web/proxy server'
 
-. '/%path_prefix%/init-functions'

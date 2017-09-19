@@ -13,4 +13,3 @@
 NAME='root-nginx'
 DESC='nginx - high performance web/proxy server (ROOT INSTANCE)'
 
-. '/%path_prefix%/init-functions'

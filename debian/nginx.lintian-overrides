@@ -1,11 +1,3 @@
-# /etc/init.d/{nginx,root-nginx} are doing the same things,
-# that's why almost all their contents are moved to file
-# /usr/share/nginx/init-functions
-
-init.d-script-does-not-implement-optional-option
-init.d-script-does-not-implement-required-option
-init.d-script-does-not-source-init-functions
-
 # scripts are actually registered
 # it's all about lintian: trust but check
 
