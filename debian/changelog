@@ -1,4 +1,4 @@
-nginx (1:1.13.5-4) UNRELEASED; urgency=medium
+nginx (1:1.13.5-4) experimental; urgency=medium
 
   * Fix shell scripts (enforce '-e' option).
   * Produce full sysvinit scripts during build;
@@ -7,7 +7,7 @@ nginx (1:1.13.5-4) UNRELEASED; urgency=medium
     were broken.
   * Fix restart/try-restart action in sysvinit scripts.
 
- -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 19 Sep 2017 12:50:46 +0300
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 19 Sep 2017 14:15:50 +0300
 
 nginx (1:1.13.5-3) experimental; urgency=medium
 
