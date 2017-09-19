@@ -52,7 +52,7 @@ ssd_name() {
   start-stop-daemon --quiet --pidfile "${PID}" --name "${NAME}" "$@"
 }
 
-is_nginx_running() {
+is_nginx_stopped() {
   ssd_exec --start --test >/dev/null
 }
 
@@ -64,7 +64,7 @@ start_nginx() {
   #   1 if daemon was already running
   #   2 if daemon could not be started
 
-  is_nginx_running || return 1
+  is_nginx_stopped || return 1
   ssd_exec --start -- ${DAEMON_OPTS} 2>/dev/null || return 2
 }
 
@@ -155,7 +155,7 @@ restart|try-restart)
   try-restart)
     log_daemon_msg "Try restarting ${DESC}"
 
-    if ! is_nginx_running; then
+    if is_nginx_stopped; then
       log_end_msg 0
       exit
     fi
@@ -168,20 +168,22 @@ restart|try-restart)
     exit
   fi
 
-  stop_nginx
-  case "$?" in
-  0|1)
-    start_nginx
+  if ! is_nginx_stopped; then
+    stop_nginx
     case "$?" in
-    0) log_end_msg 0 ;;
-    1) log_end_msg 1 ;; # Old process is still running
-    *) log_end_msg 1 ;; # Failed to start
+    0|1) ;;
+    *)
+      log_end_msg 1
+      exit
+    ;;
     esac
-  ;;
-  *)
-    # Failed to stop
-    log_end_msg 1
-  ;;
+  fi
+
+  start_nginx
+  case "$?" in
+  0) log_end_msg 0 ;;
+  1) log_end_msg 1 ;; # Old process is still running
+  *) log_end_msg 1 ;; # Failed to start
   esac
 ;;
 reload|force-reload)

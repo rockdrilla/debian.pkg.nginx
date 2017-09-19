@@ -5,6 +5,7 @@ nginx (1:1.13.5-4) UNRELEASED; urgency=medium
     previously, common sysvinit functions were placed in separate file in
     /usr/share/nginx/, but after 'nginx' package removal the init scripts
     were broken.
+  * Fix restart/try-restart action in sysvinit scripts.
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 19 Sep 2017 12:50:46 +0300
 
