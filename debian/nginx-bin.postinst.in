@@ -1,27 +1,43 @@
-#!/bin/sh
-set -e
+#!/bin/sh -e
 D=/dev/null
 
-pid_normal=%file_pid%
-pid_root=%root_file_pid%
-
 case "$1" in
-abort-upgrade|abort-remove|abort-deconfigure|configure)
-;;
 triggered)
-  if [ -x /etc/init.d/nginx ]; then
-    if [ -s "${pid_normal}" ] && pidof /usr/sbin/nginx >$D; then
-      echo "Triggering nginx reload ..."
+  pidof '%file_binary%' >$D || exit 0
+
+  pid_normal='-1'
+  if [ -s '%file_pid%' ]; then
+    echo "Triggering reload: nginx ..."
+    if [ -x "/etc/init.d/nginx" ]; then
       invoke-rc.d nginx reload || true
+    else
+      pid_normal=$(cat '%file_pid%' 2>$D || true)
+      kill -HUP ${pid_normal} || true
     fi
   fi
-  if [ -x /etc/init.d/root-nginx ]; then
-    if [ -s "${pid_root}" ] && pidof /usr/sbin/nginx >$D; then
-      echo "Triggering root-nginx reload ..."
+
+  pid_root='-1'
+  if [ -s '%root_file_pid%' ]; then
+    echo "Triggering reload: root-nginx ..."
+    if [ -x "/etc/init.d/root-nginx" ]; then
       invoke-rc.d root-nginx reload || true
+    else
+      pid_root=$(cat '%root_file_pid%' 2>$D || true)
+      kill -HUP ${pid_root} || true
     fi
   fi
+
+  pid_others=$(pidof '%file_binary%' | xargs -r ps -o sid= | \
+    sort -u | grep -Ev "^(|${pid_normal}|${pid_root})\$" || true)
+
+  [ -n "${pid_others}" ] || exit 0
+
+  echo "Triggering reload: other instances (${pid_others}) ..."
+  kill -HUP ${pid_others} || true
+
   exit 0
+;;
+abort-upgrade|abort-remove|abort-deconfigure|configure)
 ;;
 *)
   echo "postinst called with unknown argument \`$1'" >&2
@@ -29,17 +45,17 @@ triggered)
 ;;
 esac
 
-if [ -x /etc/init.d/nginx ]; then
-  if [ -s "${pid_normal}" ] && pidof /usr/sbin/nginx >$D; then
-    invoke-rc.d nginx upgrade || invoke-rc.d nginx restart
-    exit $?
+pidof '%file_binary%' >$D || exit 0
+
+if [ -s '%file_pid%' -a -x "/etc/init.d/nginx" ]; then
+  if ! invoke-rc.d nginx upgrade; then
+    invoke-rc.d nginx restart || true
   fi
 fi
 
-if [ -x /etc/init.d/root-nginx ]; then
-  if [ -s "${pid_root}" ] && pidof /usr/sbin/nginx >$D; then
-    invoke-rc.d root-nginx upgrade || invoke-rc.d root-nginx restart
-    exit $?
+if [ -s '%root_file_pid%' -a -x "/etc/init.d/root-nginx" ]; then
+  if ! invoke-rc.d root-nginx upgrade; then
+    invoke-rc.d root-nginx restart || true
   fi
 fi
 

@@ -2,7 +2,7 @@
 . /lib/lsb/init-functions
 
 PATH='/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin'
-DAEMON='/usr/sbin/nginx'
+DAEMON='%file_binary%'
 
 set -e
 [ -x "${DAEMON}" ]
@@ -113,7 +113,7 @@ upgrade_nginx() {
   OLDPID="${PID}.oldbin"
 
   # Wait for both old and new master to write their pid file
-  while [ ( ! -s "${OLDPID}" ) -o ( ! -s "${PID}" ) ]; do
+  while ! [ -s "${OLDPID}" -a -s "${PID}" ]; do
     cnt=$(expr ${cnt} + 1)
     if [ ${cnt} -gt 10 ]; then
       return 2

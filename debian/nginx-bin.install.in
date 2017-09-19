@@ -1,1 +1,1 @@
-%BUILDDIR_bin%/objs/nginx usr/sbin
+%BUILDDIR_bin%/objs/nginx %path_bindir%

@@ -18,9 +18,9 @@ After=network.target
 [Service]
 Type=forking
 PIDFile=%root_file_pid%
-ExecStartPre=/usr/sbin/nginx -c %root_file_config% -t -q
-ExecStart=/usr/sbin/nginx -c %root_file_config%
-ExecReload=/usr/sbin/nginx -c %root_file_config% -s reload
+ExecStartPre=%file_binary% -c %root_file_config% -t -q
+ExecStart=%file_binary% -c %root_file_config%
+ExecReload=%file_binary% -c %root_file_config% -s reload
 ExecStop=-/sbin/start-stop-daemon --quiet --stop --retry QUIT/5 --pidfile %root_file_pid%
 TimeoutStopSec=5
 KillMode=mixed

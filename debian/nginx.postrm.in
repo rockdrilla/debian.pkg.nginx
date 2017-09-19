@@ -1,8 +1,7 @@
-#!/bin/sh
-set -e
+#!/bin/sh -e
 D=/dev/null
 
-d_h_s() {
+d_s_h() {
   if which deb-systemd-helper >$D; then
     deb-systemd-helper "$@"
   fi
@@ -12,18 +11,20 @@ case "$1" in
 purge)
   rm -rf '/%path_data%' '/%path_log%' '/%root_path_data%' '/%root_path_log%'
 
-  for i in nginx root-nginx; do
-    update-rc.d $i remove
-    s=${i}.service
-    d_h_s purge $s
-    d_h_s unmask $s
-  done >$D 2>$D
+  for i in nginx root-nginx; do s="$i.service"
+    update-rc.d "$i" remove >$D
+    d_s_h purge "$s" >$D
+    d_s_h unmask "$s" >$D
+  done
+
+  if [ -d /run/systemd/system ] ; then
+    systemctl --system daemon-reload >$D || true
+  fi
 ;;
 remove)
-  for i in nginx root-nginx; do
-    s=${i}.service
-    d_h_s mask $s
-  done >$D 2>$D
+  for i in nginx root-nginx; do s="$i.service"
+    d_s_h mask "$s" >$D
+  done
 ;;
 upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
 ;;
@@ -32,9 +33,5 @@ upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
   exit 1
 ;;
 esac
-
-if [ -d /run/systemd/system ] ; then
-  systemctl --system daemon-reload >$D || true
-fi
 
 exit 0

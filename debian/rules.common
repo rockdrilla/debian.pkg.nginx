@@ -45,6 +45,7 @@ nginx_log_group =adm
 
 ## KrD: common variables
 
+path_bindir  =usr/sbin
 path_prefix  =usr/share/nginx
 path_conf    =etc/nginx
 path_log     =var/log/nginx
@@ -63,6 +64,8 @@ path_conf_enabled   =$(path_conf)/conf-enabled
 
 path_site_available =$(path_conf)/sites-available
 path_site_enabled   =$(path_conf)/sites-enabled
+
+file_binary =/$(path_bindir)/nginx
 
 ## KrD: normal nginx variables
 

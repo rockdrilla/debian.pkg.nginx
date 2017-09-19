@@ -6,6 +6,7 @@ nginx (1:1.13.5-3) UNRELEASED; urgency=medium
   * Explicitly disable autoreconf.
   * Switch Priority of all packages to optional.
   * Fix init scripts.
+  * Fix {pre|post}{inst|rm} scripts.
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 18 Sep 2017 13:02:03 +0300
 

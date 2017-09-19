@@ -1,17 +1,30 @@
-#!/bin/sh
-set -e
+#!/bin/sh -e
 D=/dev/null
 
 case "$1" in
-remove)
-  if [ -s '%file_pid%' ] && pidof /usr/sbin/nginx >$D; then
+remove|remove-in-favour|deconfigure|deconfigure-in-favour)
+  pidof '%file_binary%' >$D || exit 0
+
+  if [ -s '%file_pid%' -a -x "/etc/init.d/nginx" ]; then
     invoke-rc.d nginx stop || exit $?
   fi
-  if [ -s '%root_file_pid%' ] && pidof /usr/sbin/nginx >$D; then
+  if [ -s '%root_file_pid%' -a -x "/etc/init.d/root-nginx" ]; then
     invoke-rc.d root-nginx stop || exit $?
   fi
+
+  pidof '%file_binary%' >$D || exit 0
+  echo "send SIGQUIT to remaining nginx processes" >&2
+  pidof '%file_binary%' | xargs -r kill -QUIT 2>$D || exit $?
+  sleep 3
+  pidof '%file_binary%' >$D || exit 0
+  echo "send SIGTERM to remaining nginx processes" >&2
+  pidof '%file_binary%' | xargs -r kill -TERM 2>$D || exit $?
+  sleep 3
+  pidof '%file_binary%' >$D || exit 0
+  echo "send SIGKILL to remaining nginx processes" >&2
+  pidof '%file_binary%' | xargs -r kill -KILL 2>$D || exit $?
 ;;
-remove-in-favour|deconfigure|deconfigure-in-favour|upgrade|failed-upgrade)
+upgrade|failed-upgrade)
 ;;
 *)
   echo "prerm called with unknown argument \`$1'" >&2

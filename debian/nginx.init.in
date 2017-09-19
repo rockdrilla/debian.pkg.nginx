@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 ### BEGIN INIT INFO
 # Provides:          nginx
@@ -13,4 +13,4 @@
 NAME='nginx'
 DESC='nginx - high performance web/proxy server'
 
-. /%path_prefix%/init-functions
+. '/%path_prefix%/init-functions'
