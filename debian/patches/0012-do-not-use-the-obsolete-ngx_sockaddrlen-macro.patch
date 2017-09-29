@@ -1,0 +1,29 @@
+From: Ruslan Ermilov <ru@nginx.com>
+Date: Fri, 22 Sep 2017 13:10:49 +0300
+Subject: Do not use the obsolete NGX_SOCKADDRLEN macro.
+
+The change in ac120e797d28 re-used the macro which was made obsolete
+in adf25b8d0431.
+
+--- a/src/http/modules/ngx_http_upstream_zone_module.c
++++ b/src/http/modules/ngx_http_upstream_zone_module.c
+@@ -281,7 +281,7 @@ ngx_http_upstream_zone_copy_peer(ngx_http_upstream_rr_peers_t *peers,
+         dst->server.data = NULL;
+     }
+ 
+-    dst->sockaddr = ngx_slab_calloc_locked(pool, NGX_SOCKADDRLEN);
++    dst->sockaddr = ngx_slab_calloc_locked(pool, sizeof(ngx_sockaddr_t));
+     if (dst->sockaddr == NULL) {
+         goto failed;
+     }
+--- a/src/stream/ngx_stream_upstream_zone_module.c
++++ b/src/stream/ngx_stream_upstream_zone_module.c
+@@ -278,7 +278,7 @@ ngx_stream_upstream_zone_copy_peer(ngx_stream_upstream_rr_peers_t *peers,
+         dst->server.data = NULL;
+     }
+ 
+-    dst->sockaddr = ngx_slab_calloc_locked(pool, NGX_SOCKADDRLEN);
++    dst->sockaddr = ngx_slab_calloc_locked(pool, sizeof(ngx_sockaddr_t));
+     if (dst->sockaddr == NULL) {
+         goto failed;
+     }

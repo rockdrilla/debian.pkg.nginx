@@ -9,6 +9,10 @@
 0009-http-2-fixed-debug-log-about-indexed-headers.patch
 0010-http-2-shortened-some-debug-log-messages.patch
 0011-removed-more-remnants-of-the-old-pthread-implementation.patch
+0012-do-not-use-the-obsolete-ngx_sockaddrlen-macro.patch
+0013-style.patch
+0014-modules-compatibility-down-flag-promoted-to-a-bitmask.patch
+0015-fixed-the-ngx_unix_addrstrlen-macro.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch

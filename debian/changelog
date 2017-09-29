@@ -1,3 +1,12 @@
+nginx (1:1.13.5-5) experimental; urgency=medium
+
+  * Cherry-pick upstream patches:
+    - Do not use the obsolete NGX_SOCKADDRLEN macro.
+    - Modules compatibility: down flag promoted to a bitmask.
+    - Fixed the NGX_UNIX_ADDRSTRLEN macro.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Fri, 29 Sep 2017 09:41:23 +0300
+
 nginx (1:1.13.5-4) experimental; urgency=medium
 
   * Fix shell scripts (enforce '-e' option).
