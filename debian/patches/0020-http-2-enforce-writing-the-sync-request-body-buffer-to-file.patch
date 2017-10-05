@@ -1,0 +1,42 @@
+From: Valentin Bartenev <vbart@nginx.com>
+Date: Wed, 4 Oct 2017 21:15:15 +0300
+Subject: HTTP/2: enforce writing the sync request body buffer to file.
+
+The sync flag of HTTP/2 request body buffer is used when the size of request
+body is unknown or bigger than configured "client_body_buffer_size".  In this
+case the buffer points to body data inside the global receive buffer that is
+used for reading all HTTP/2 connections in the worker process.  Thus, when the
+sync flag is set, the buffer must be flushed to a temporary file, otherwise
+the request body data can be overwritten.
+
+Previously, the sync buffer wasn't flushed to a temporary file if the whole
+body was received in one DATA frame with the END_STREAM flag and wasn't
+copied into the HTTP/2 body preread buffer.  As a result, the request body
+might be corrupted (ticket #1384).
+
+Now, setting r->request_body_in_file_only enforces writing the sync buffer
+to a temporary file in all cases.
+
+--- a/src/http/v2/ngx_http_v2.c
++++ b/src/http/v2/ngx_http_v2.c
+@@ -3589,11 +3589,6 @@ ngx_http_v2_read_request_body(ngx_http_request_t *r)
+         rb->buf = ngx_create_temp_buf(r->pool, (size_t) len);
+ 
+     } else {
+-        if (stream->preread) {
+-            /* enforce writing preread buffer to file */
+-            r->request_body_in_file_only = 1;
+-        }
+-
+         rb->buf = ngx_calloc_buf(r->pool);
+ 
+         if (rb->buf != NULL) {
+@@ -3694,6 +3689,8 @@ ngx_http_v2_process_request_body(ngx_http_request_t *r, u_char *pos,
+             buf->pos = buf->start = pos;
+             buf->last = buf->end = pos + size;
+ 
++            r->request_body_in_file_only = 1;
++
+         } else {
+             if (size > (size_t) (buf->end - buf->last)) {
+                 ngx_log_error(NGX_LOG_INFO, fc->log, 0,

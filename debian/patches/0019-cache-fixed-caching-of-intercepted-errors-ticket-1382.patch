@@ -1,0 +1,41 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Tue, 3 Oct 2017 18:19:27 +0300
+Subject: Cache: fixed caching of intercepted errors (ticket #1382).
+
+When caching intercepted errors, previous behaviour was to use
+proxy_cache_valid times specified, regardless of various cache control
+headers present in the response.  Fix is to check u->cacheable and
+use u->cache->valid_sec as set by various cache control response headers,
+similar to how we do this in the normal caching code path.
+
+--- a/src/http/ngx_http_upstream.c
++++ b/src/http/ngx_http_upstream.c
+@@ -2528,13 +2528,23 @@ ngx_http_upstream_intercept_errors(ngx_http_request_t *r,
+ #if (NGX_HTTP_CACHE)
+ 
+             if (r->cache) {
+-                time_t  valid;
+ 
+-                valid = ngx_http_file_cache_valid(u->conf->cache_valid, status);
++                if (u->cacheable) {
++                    time_t  valid;
+ 
+-                if (valid) {
+-                    r->cache->valid_sec = ngx_time() + valid;
+-                    r->cache->error = status;
++                    valid = r->cache->valid_sec;
++
++                    if (valid == 0) {
++                        valid = ngx_http_file_cache_valid(u->conf->cache_valid,
++                                                          status);
++                        if (valid) {
++                            r->cache->valid_sec = ngx_time() + valid;
++                        }
++                    }
++
++                    if (valid) {
++                        r->cache->error = status;
++                    }
+                 }
+ 
+                 ngx_http_file_cache_free(r->cache, u->pipe->temp_file);

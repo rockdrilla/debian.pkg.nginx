@@ -1,0 +1,48 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Mon, 2 Oct 2017 19:10:20 +0300
+Subject: Upstream: better handling of invalid headers in cache files.
+
+If cache file is truncated, it is possible that u->process_header()
+will return NGX_AGAIN.  Added appropriate handling of this case by
+changing the error to NGX_HTTP_UPSTREAM_INVALID_HEADER.
+
+Also, added appropriate logging of this and NGX_HTTP_UPSTREAM_INVALID_HEADER
+cases at the "crit" level.  Note that this will result in duplicate logging
+in case of NGX_HTTP_UPSTREAM_INVALID_HEADER.  While this is something better
+to avoid, it is considered to be an overkill to implement cache-specific
+error logging in u->process_header().
+
+Additionally, u->buffer.start is now reset to be able to receive a new
+response, and u->cache_status set to MISS to provide the value in the
+$upstream_cache_status variable, much like it happens on other cache file
+errors detected by ngx_http_file_cache_read(), instead of HIT, which is
+believed to be misleading.
+
+--- a/src/http/ngx_http_upstream.c
++++ b/src/http/ngx_http_upstream.c
+@@ -582,6 +582,8 @@ ngx_http_upstream_init_request(ngx_http_request_t *r)
+             if (rc == NGX_HTTP_UPSTREAM_INVALID_HEADER) {
+                 rc = NGX_DECLINED;
+                 r->cached = 0;
++                u->buffer.start = NULL;
++                u->cache_status = NGX_HTTP_CACHE_MISS;
+             }
+ 
+             if (ngx_http_upstream_cache_background_update(r, u) != NGX_OK) {
+@@ -1059,8 +1061,16 @@ ngx_http_upstream_cache_send(ngx_http_request_t *r, ngx_http_upstream_t *u)
+         return NGX_ERROR;
+     }
+ 
++    if (rc == NGX_AGAIN) {
++        rc = NGX_HTTP_UPSTREAM_INVALID_HEADER;
++    }
++
+     /* rc == NGX_HTTP_UPSTREAM_INVALID_HEADER */
+ 
++    ngx_log_error(NGX_LOG_CRIT, r->connection->log, 0,
++                  "cache file \"%s\" contains invalid header",
++                  c->file.name.data);
++
+     /* TODO: delete file */
+ 
+     return rc;

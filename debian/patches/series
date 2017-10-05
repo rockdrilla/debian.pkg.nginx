@@ -13,6 +13,14 @@
 0013-style.patch
 0014-modules-compatibility-down-flag-promoted-to-a-bitmask.patch
 0015-fixed-the-ngx_unix_addrstrlen-macro.patch
+0016-mime-style.patch
+0017-mime-added-most-common-opendocument-types.patch
+0018-upstream-better-handling-of-invalid-headers-in-cache-files.patch
+0019-cache-fixed-caching-of-intercepted-errors-ticket-1382.patch
+0020-http-2-enforce-writing-the-sync-request-body-buffer-to-file.patch
+0021-fixed-buffer-overread-with-unix-sockets-after-accept.patch
+0022-fixed-handling-of-non-null-terminated-unix-sockets.patch
+0023-fixed-handling-of-unix-sockets-in-binary_remote_addr.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch

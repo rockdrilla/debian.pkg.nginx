@@ -1,3 +1,16 @@
+nginx (1:1.13.5-6) experimental; urgency=medium
+
+  * Cherry-pick upstream patches:
+    - MIME: added most common OpenDocument types.
+    - Upstream: better handling of invalid headers in cache files.
+    - Cache: fixed caching of intercepted errors (ticket #1382).
+    - HTTP/2: enforce writing the sync request body buffer to file.
+    - Fixed buffer overread with unix sockets after accept().
+    - Fixed handling of non-null-terminated unix sockets.
+    - Fixed handling of unix sockets in $binary_remote_addr.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Thu, 05 Oct 2017 10:16:24 +0300
+
 nginx (1:1.13.5-5) experimental; urgency=medium
 
   * Cherry-pick upstream patches:
