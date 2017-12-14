@@ -1,0 +1,85 @@
+From: Ruslan Ermilov <ru@nginx.com>
+Date: Tue, 28 Nov 2017 12:00:24 +0300
+Subject: Fixed "changing binary" when reaper is not init.
+
+On some systems, it's possible that reaper of orphaned processes is
+set to something other than "init" process.  On such systems, the
+changing binary procedure did not work.
+
+The fix is to check if PPID has changed, instead of assuming it's
+always 1 for orphaned processes.
+
+--- a/src/core/nginx.c
++++ b/src/core/nginx.c
+@@ -228,6 +228,7 @@ main(int argc, char *const *argv)
+ #endif
+ 
+     ngx_pid = ngx_getpid();
++    ngx_parent = ngx_getppid();
+ 
+     log = ngx_log_init(ngx_prefix);
+     if (log == NULL) {
+--- a/src/os/unix/ngx_daemon.c
++++ b/src/os/unix/ngx_daemon.c
+@@ -26,6 +26,7 @@ ngx_daemon(ngx_log_t *log)
+         exit(0);
+     }
+ 
++    ngx_parent = ngx_pid;
+     ngx_pid = ngx_getpid();
+ 
+     if (setsid() == -1) {
+--- a/src/os/unix/ngx_process.c
++++ b/src/os/unix/ngx_process.c
+@@ -194,6 +194,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ng
+         return NGX_INVALID_PID;
+ 
+     case 0:
++        ngx_parent = ngx_pid;
+         ngx_pid = ngx_getpid();
+         proc(cycle, data);
+         break;
+@@ -371,12 +372,12 @@ ngx_signal_handler(int signo, siginfo_t
+             break;
+ 
+         case ngx_signal_value(NGX_CHANGEBIN_SIGNAL):
+-            if (getppid() > 1 || ngx_new_binary > 0) {
++            if (ngx_getppid() == ngx_parent || ngx_new_binary > 0) {
+ 
+                 /*
+                  * Ignore the signal in the new binary if its parent is
+-                 * not the init process, i.e. the old binary's process
+-                 * is still running.  Or ignore the signal in the old binary's
++                 * not changed, i.e. the old binary's process is still
++                 * running.  Or ignore the signal in the old binary's
+                  * process if the new binary's process is already running.
+                  */
+ 
+--- a/src/os/unix/ngx_process.h
++++ b/src/os/unix/ngx_process.h
+@@ -54,6 +54,7 @@ typedef struct {
+ 
+ 
+ #define ngx_getpid   getpid
++#define ngx_getppid  getppid
+ 
+ #ifndef ngx_log_pid
+ #define ngx_log_pid  ngx_pid
+@@ -79,6 +80,7 @@ extern char         **ngx_argv;
+ extern char         **ngx_os_argv;
+ 
+ extern ngx_pid_t      ngx_pid;
++extern ngx_pid_t      ngx_parent;
+ extern ngx_socket_t   ngx_channel;
+ extern ngx_int_t      ngx_process_slot;
+ extern ngx_int_t      ngx_last_process;
+--- a/src/os/unix/ngx_process_cycle.c
++++ b/src/os/unix/ngx_process_cycle.c
+@@ -31,6 +31,7 @@ static void ngx_cache_loader_process_han
+ ngx_uint_t    ngx_process;
+ ngx_uint_t    ngx_worker;
+ ngx_pid_t     ngx_pid;
++ngx_pid_t     ngx_parent;
+ 
+ sig_atomic_t  ngx_reap;
+ sig_atomic_t  ngx_sigio;

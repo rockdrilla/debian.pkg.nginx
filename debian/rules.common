@@ -1,4 +1,7 @@
 #!/usr/bin/make -f
+
+include /usr/share/dpkg/default.mk
+
 MAKEFLAGS +=--no-print-directory
 
 override undefine CFLAGS
@@ -13,6 +16,7 @@ export DEB_LDFLAGS_MAINT_APPEND +=-Wl,-z,noexecstack
 ## idea taken from Debian src:nginx/debian/dh_nginx
 X :=$(shell printf '\027')
 
+## KrD: companion to /usr/share/dpkg/buildtools.mk
 STRIP :=strip
 ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
   STRIP :=$(DEB_HOST_GNU_TYPE)-$(STRIP)
@@ -24,14 +28,6 @@ ifneq (,$(filter parallel=,$(DEB_BUILD_OPTIONS)))
 endif
 
 CP :=cp --reflink=auto -a
-
-PKG_NAME    :=$(shell dpkg-parsechangelog -S Source)
-PKG_VERSION :=$(shell dpkg-parsechangelog -S Version)
-
-PKG_VER_STRUCT   :=$(shell echo '$(PKG_VERSION)' | sed -re 's$(X)^(([0-9]+):([0-9][0-9a-zA-Z.+~:-]*)-([0-9a-zA-Z+.~]+)|([0-9]+):([0-9][0-9a-zA-Z.+~:]*)|([0-9][0-9a-zA-Z.+~-]*)-([0-9a-zA-Z+.~]+)|([0-9][0-9a-zA-Z.+~]*))$$$(X)\2\5|\3\7|\4\6\8\9$(X)')
-PKG_VER_REVISION :=$(shell echo '$(PKG_VER_STRUCT)' | cut -d '|' -f 1)
-PKG_VER_UPSTREAM :=$(shell echo '$(PKG_VER_STRUCT)' | cut -d '|' -f 2)
-PKG_VER_DEBIAN   :=$(shell echo '$(PKG_VER_STRUCT)' | cut -d '|' -f 3)
 
 PKG_LIST :=$(shell dh_listpackages)
 
@@ -167,12 +163,12 @@ CONF_FLAGS =$(conf_common) \
   --with-cc-opt='$(mod_cflags)' \
   --with-ld-opt='$(mod_ldflags)'
 
-SRC_PATHS_CORE :=auto conf configure contrib src
+SRC_PATHS_CORE :=auto configure src
 
 SRC_PATHS =$(SRC_PATHS_CORE)
 BUILDDIR  =$(CURDIR)
 
-NGX_VERSION =$(PKG_VERSION)
+NGX_VERSION =$(DEB_VERSION)
 NGX_3PM :=
 ifeq (,$(NGX_SRCDIR))
   NGX_SRCDIR   :=/$(path_source)
@@ -180,15 +176,15 @@ ifeq (,$(NGX_SRCDIR))
 
   NGX_3PM :=y
 
-  ifeq (,$(filter nginx-%,$(PKG_NAME)))
-    $(error ERROR: source package name "$(PKG_NAME)" doesn't conform to \
+  ifeq (,$(filter nginx-%,$(DEB_SOURCE)))
+    $(error ERROR: source package name "$(DEB_SOURCE)" doesn't conform to \
       3rd party module naming scheme in format "nginx-{module_name}")
   endif
 
-  NGX_3PM_NAME :=$(patsubst nginx-%,%,$(PKG_NAME))
+  NGX_3PM_NAME :=$(patsubst nginx-%,%,$(DEB_SOURCE))
   PKG_STEM     :=mod-$(NGX_3PM_NAME)
 
-  NGX_3PM_BASE :=modules/$(PKG_NAME)
+  NGX_3PM_BASE :=modules/$(DEB_SOURCE)
   NGX_3PM_PATH :=$(NGX_3PM_BASE)$(if $(NGX_3PM_SUBPATH),/$(NGX_3PM_SUBPATH))
 
   $(eval $(shell \
@@ -258,14 +254,14 @@ endif
 
 override_dh_auto_configure: ngx_generate_substvars
 ngx_generate_substvars:
-	{ F='Build-Depends'; V='$(PKG_VERSION)'; \
+	{ F='Build-Depends'; V='$(DEB_VERSION)'; \
 	  sed -nr \
 	    -e "s/#.+\$$//g;" \
 	    -e "/^$${F}:/,/^\S/{s/^$${F}://;p;}" < debian/control | \
 	  sed -nr \
 	    -e "\$$!{/^.+\$$/H;d;};x;" \
 	    -e "s/(\s|\n)+/ /g;s/\s([,)])/\\1/g;s/^ //;" \
-	    -e "s/^/$(PKG_NAME):$${F}=/;p;"; \
+	    -e "s/^/$(DEB_SOURCE):$${F}=/;p;"; \
 	  for N in $(filter libnginx-%,$(shell dh_listpackages -a)); do \
 	    echo "$${N}:Depends=$${N} (>= $${V}) | $${N} (<< $${V}.0~)"; \
 	  done; \
@@ -292,7 +288,7 @@ ngx_configure_module: ngx_early_source_copy
 ngx_early_source_copy:
 	D=debian/early-source; mkdir -p $${D}; \
 	P='$(if $(NGX_3PM),usr/src,%path_source%)'; \
-	for i in $(if $(NGX_3PM),$(PKG_NAME),$(SRC_PATHS_CORE)); do \
+	for i in $(if $(NGX_3PM),$(DEB_SOURCE),$(SRC_PATHS_CORE)); do \
 	  $(CP) $(if $(NGX_3PM),modules/)$${i} $${D}/; \
 	  echo "$${D}/$${i} $${P}" >> debian/$(PKG_DEV).install.in; \
 	done

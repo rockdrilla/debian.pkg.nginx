@@ -7,10 +7,10 @@ Subject: trim whitespaces in variables during configuration
  # clang
  
  
--NGX_CLANG_VER=`$CC -v 2>&1 | grep '\(clang\|LLVM\) version' 2>&1 \
+-NGX_CLANG_VER=`$CC -v 2>&1 | grep 'version' 2>&1 \
 -                           | sed -e 's/^.* version \(.*\)/\1/'`
 +NGX_CLANG_VER=`$CC -v 2>&1 | \
-+sed -ne 'y/\t/ /;s/ \+/ /g;/^.*\(clang\|LLVM\) version \(.*\S\) \?$/{s//\1/;p;};'`
++sed -ne 'y/\t/ /;s/ \+/ /g;/^.*version \(.*\S\) \?$/{s//\1/;p;};'`
  
  echo " + clang version: $NGX_CLANG_VER"
  

@@ -1,3 +1,17 @@
+0001-configure-fixed-clang-detection-on-minix.patch
+0002-fixed-changing-binary-when-reaper-is-not-init.patch
+0003-removed-unused-freebsd-specific-definitions-in-ngx_posix_config-h.patch
+0004-autoindex-discard-request-body-ticket-1439.patch
+0005-upstream-keepalive-clean-read-delayed-flag-in-stored-connections.patch
+0006-upstream-flush-low-level-buffers-on-write-retry.patch
+0007-proxy-simplified-conditions-of-using-unparsed-uri.patch
+0008-inherit-valid_unparsed_uri-in-cloned-subrequests-ticket-1430.patch
+0009-proxy-escape-explicit-space-in-uri-in-default-cache-key.patch
+0010-configure-moved-ip_bind_address_no_port-test.patch
+0011-configure-fixed-so_bindany-comment.patch
+0012-configure-set-default-cacheline-size-to-64-for-aarch64-platforms.patch
+0013-use-sysconf-to-determine-cacheline-size-at-runtime.patch
+0014-retain-cap_net_raw-capability-for-transparent-proxying.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch

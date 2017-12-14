@@ -41,7 +41,7 @@ ngx_clean_binary:
 
 override_dh_auto_configure: ngx_generate_substvars_binary
 ngx_generate_substvars_binary: ngx_generate_substvars
-	{ V='$(NGX_VERSION)'; \
+	{ V='$(DEB_VERSION)'; \
 	  echo "nginx:Depends=nginx-bin (>= $${V}) | nginx-bin (<< $${V}.0~)"; \
 	} >> debian/substvars.$(PKG_STEM).in
 

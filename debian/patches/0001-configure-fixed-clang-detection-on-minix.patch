@@ -1,0 +1,36 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Thu, 23 Nov 2017 16:33:40 +0300
+Subject: Configure: fixed clang detection on MINIX.
+
+As per POSIX, basic regular expressions have no alternations, and the
+interpretation of the "\|" construct is undefined.  At least on MINIX
+and Solaris grep interprets "\|" as literal "|", and not as an alternation
+as GNU grep does.  Removed such constructs introduced in f1daa0356a1d.
+This fixes clang detection on MINIX.
+
+--- a/auto/cc/clang
++++ b/auto/cc/clang
+@@ -5,7 +5,7 @@
+ # clang
+ 
+ 
+-NGX_CLANG_VER=`$CC -v 2>&1 | grep '\(clang\|LLVM\) version' 2>&1 \
++NGX_CLANG_VER=`$CC -v 2>&1 | grep 'version' 2>&1 \
+                            | sed -e 's/^.* version \(.*\)/\1/'`
+ 
+ echo " + clang version: $NGX_CLANG_VER"
+--- a/auto/cc/name
++++ b/auto/cc/name
+@@ -44,7 +44,11 @@ elif `$CC -v 2>&1 | grep 'gcc version' >
+     NGX_CC_NAME=gcc
+     echo " + using GNU C compiler"
+ 
+-elif `$CC -v 2>&1 | grep '\(clang\|LLVM\) version' >/dev/null 2>&1`; then
++elif `$CC -v 2>&1 | grep 'clang version' >/dev/null 2>&1`; then
++    NGX_CC_NAME=clang
++    echo " + using Clang C compiler"
++
++elif `$CC -v 2>&1 | grep 'LLVM version' >/dev/null 2>&1`; then
+     NGX_CC_NAME=clang
+     echo " + using Clang C compiler"
+ 

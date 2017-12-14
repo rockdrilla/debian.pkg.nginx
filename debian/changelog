@@ -1,3 +1,25 @@
+nginx (1:1.13.7-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Cherry-pick upstream patches:
+    - Configure: fixed clang detection on MINIX.
+    - Fixed "changing binary" when reaper is not init.
+    - Removed unused FreeBSD-specific definitions in ngx_posix_config.h.
+    - Autoindex: discard request body (ticket #1439).
+    - Upstream keepalive: clean read delayed flag in stored connections.
+    - Upstream: flush low-level buffers on write retry.
+    - Proxy: simplified conditions of using unparsed uri.
+    - Inherit valid_unparsed_uri in cloned subrequests (ticket #1430).
+    - Proxy: escape explicit space in URI in default cache key.
+    - Configure: moved IP_BIND_ADDRESS_NO_PORT test.
+    - Configure: fixed SO_BINDANY comment.
+    - Configure: set default cacheline size to 64 for aarch64 platforms.
+    - Use sysconf to determine cacheline size at runtime.
+    - Retain CAP_NET_RAW capability for transparent proxying.
+  * Refresh own patches.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Thu, 14 Dec 2017 11:28:44 +0300
+
 nginx (1:1.13.6-1) experimental; urgency=medium
 
   * New upstream release.
