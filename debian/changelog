@@ -17,8 +17,11 @@ nginx (1:1.13.7-1) UNRELEASED; urgency=medium
     - Use sysconf to determine cacheline size at runtime.
     - Retain CAP_NET_RAW capability for transparent proxying.
   * Refresh own patches.
+  * Remove "root-nginx" instance:
+    upstream patch "Retain CAP_NET_RAW capability for transparent proxying"
+    eliminates need of separate instance.
 
- -- Konstantin Demin <rockdrilla@gmail.com>  Thu, 14 Dec 2017 11:28:44 +0300
+ -- Konstantin Demin <rockdrilla@gmail.com>  Thu, 14 Dec 2017 11:54:13 +0300
 
 nginx (1:1.13.6-1) experimental; urgency=medium
 

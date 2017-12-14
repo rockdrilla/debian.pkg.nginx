@@ -1,3 +1,2 @@
 module prio=00 name=stream objs/ngx_stream_module.so
 config debian/conf-modules/module-stream.conf
-config debian/conf-modules/root-module-stream.conf

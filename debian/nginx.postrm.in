@@ -10,22 +10,20 @@ d_s_h() {
 
 case "$1" in
 purge)
-  rm -rf '/%path_data%' '/%path_log%' '/%root_path_data%' '/%root_path_log%'
+  rm -rf '/%path_data%' '/%path_log%'
 
-  for i in nginx root-nginx; do s="$i.service"
-    update-rc.d "$i" remove >$D
-    d_s_h purge "$s" >$D
-    d_s_h unmask "$s" >$D
-  done
+  s="nginx.service"
+  update-rc.d "$i" remove >$D
+  d_s_h purge "$s" >$D
+  d_s_h unmask "$s" >$D
 
   if [ -d /run/systemd/system ] ; then
     systemctl --system daemon-reload >$D || true
   fi
 ;;
 remove)
-  for i in nginx root-nginx; do s="$i.service"
-    d_s_h mask "$s" >$D
-  done
+  s="nginx.service"
+  d_s_h mask "$s" >$D
 ;;
 upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
 ;;

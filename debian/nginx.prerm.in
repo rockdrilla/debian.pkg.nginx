@@ -9,9 +9,6 @@ remove|remove-in-favour|deconfigure|deconfigure-in-favour)
   if [ -s '%file_pid%' -a -x "/etc/init.d/nginx" ]; then
     invoke-rc.d nginx stop || exit $?
   fi
-  if [ -s '%root_file_pid%' -a -x "/etc/init.d/root-nginx" ]; then
-    invoke-rc.d root-nginx stop || exit $?
-  fi
 
   pidof '%file_binary%' >$D || exit 0
   echo "send SIGQUIT to remaining nginx processes" >&2

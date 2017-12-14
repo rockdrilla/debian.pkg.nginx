@@ -1,2 +1,1 @@
 %path_conf_available%/core-worker-connections.conf %path_conf_enabled%/core-worker-connections.conf
-%path_conf_available%/core-worker-connections.conf %path_conf_enabled%/root-core-worker-connections.conf

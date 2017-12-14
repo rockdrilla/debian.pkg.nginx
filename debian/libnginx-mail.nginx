@@ -1,3 +1,2 @@
 module prio=00 name=mail objs/ngx_mail_module.so
 config debian/conf-modules/module-mail.conf
-config debian/conf-modules/root-module-mail.conf

@@ -45,12 +45,6 @@ ngx_generate_substvars_binary: ngx_generate_substvars
 	  echo "nginx:Depends=nginx-bin (>= $${V}) | nginx-bin (<< $${V}.0~)"; \
 	} >> debian/substvars.$(PKG_STEM).in
 
-override_dh_auto_configure: ngx_merge_sysvinit_scripts
-ngx_merge_sysvinit_scripts:
-	for I in nginx nginx.root-nginx; do \
-	  cat debian/scripts/init-functions.in >> debian/$$I.init.in; \
-	done
-
 override_dh_install: ngx_cleanup_conf_templates
 ngx_cleanup_conf_templates:
 	rm -f conf/nginx.conf
@@ -77,19 +71,4 @@ ngx_create_aux_links_binary:
 	  p=debian/$${N}/$(path_doc); \
 	  mkdir -p $${p}; \
 	  ln -sf nginx-bin $${p}/$${N}; \
-	done
-
-override_dh_installlogrotate:
-	for I in nginx root-nginx; do \
-	  dh_installlogrotate --package=nginx --name=$$I; \
-	done
-
-override_dh_systemd_enable:
-	for I in nginx root-nginx; do \
-	  dh_systemd_enable --package=nginx --name=$$I; \
-	done
-
-override_dh_installinit:
-	for I in nginx root-nginx; do \
-	  dh_installinit --package=nginx --name=$$I; \
 	done

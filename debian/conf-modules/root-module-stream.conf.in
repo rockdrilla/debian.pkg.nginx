@@ -1,4 +1,0 @@
-stream {
-	include /%path_conf_enabled%/root-stream-*.conf;
-	include /%path_site_enabled%/root-stream-*.conf;
-}

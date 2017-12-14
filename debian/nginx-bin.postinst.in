@@ -17,19 +17,8 @@ triggered)
     fi
   fi
 
-  pid_root='-1'
-  if [ -s '%root_file_pid%' ]; then
-    echo "Triggering reload: root-nginx ..."
-    if [ -x "/etc/init.d/root-nginx" ]; then
-      invoke-rc.d root-nginx reload || true
-    else
-      pid_root=$(cat '%root_file_pid%' 2>$D || true)
-      kill -HUP ${pid_root} || true
-    fi
-  fi
-
   pid_others=$(pidof '%file_binary%' | xargs -r ps -o sid= | \
-    sort -u | grep -Ev "^(|${pid_normal}|${pid_root})\$" || true)
+    sort -u | grep -Ev "^(|${pid_normal})\$" || true)
 
   [ -n "${pid_others}" ] || exit 0
 
@@ -51,12 +40,6 @@ pidof '%file_binary%' >$D || exit 0
 if [ -s '%file_pid%' -a -x "/etc/init.d/nginx" ]; then
   if ! invoke-rc.d nginx upgrade; then
     invoke-rc.d nginx restart || true
-  fi
-fi
-
-if [ -s '%root_file_pid%' -a -x "/etc/init.d/root-nginx" ]; then
-  if ! invoke-rc.d root-nginx upgrade; then
-    invoke-rc.d root-nginx restart || true
   fi
 fi
 

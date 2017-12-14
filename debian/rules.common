@@ -77,23 +77,6 @@ path_temp_proxy   =/$(path_data)/proxy
 path_temp_scgi    =/$(path_data)/scgi
 path_temp_uwsgi   =/$(path_data)/uwsgi
 
-## KrD: nginx instance with root privileges requires data separation
-
-root_path_log  =var/log/root-nginx
-root_path_data =var/lib/root-nginx
-
-root_file_config     =/$(path_conf)/root-nginx.conf
-root_file_log_access =/$(root_path_log)/access.log
-root_file_log_error  =/$(root_path_log)/error.log
-root_file_lock       =/$(path_lock)/root-nginx.lock
-root_file_pid        =/$(path_pid)/root-nginx.pid
-
-root_path_temp_client  =/$(root_path_data)/body
-root_path_temp_fastcgi =/$(root_path_data)/fastcgi
-root_path_temp_proxy   =/$(root_path_data)/proxy
-root_path_temp_scgi    =/$(root_path_data)/scgi
-root_path_temp_uwsgi   =/$(root_path_data)/uwsgi
-
 ## KrD: configuration options (separated by function)
 
 conf_paths =\

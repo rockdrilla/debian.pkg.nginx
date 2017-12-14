@@ -40,21 +40,13 @@ setup_file() {
 
 case "$1" in
 configure)
-  for i in '/%path_log%' '/%root_path_log%'; do
-    setup_dir root '%nginx_log_group%' 0755 "$i"
-  done
-
-  setup_dir '%nginx_user%' root 0750 '/%path_data%'
-  setup_dir root root 0750 '/%root_path_data%'
+  setup_dir root %nginx_log_group% 0755 '/%path_log%'
+  setup_dir %nginx_user% root 0750 '/%path_data%'
 
   ## secure default logfiles on fresh installations
   if [ -z "$2" ]; then
     for i in '%file_log_access%' '%file_log_error%'; do
       setup_file '%nginx_user%' '%nginx_log_group%' 0640 "$i"
-    done
-
-    for i in '%root_file_log_access%' '%root_file_log_error%'; do
-      setup_file root '%nginx_log_group%' 0640 "$i"
     done
   fi
 ;;
@@ -66,22 +58,20 @@ abort-upgrade|abort-remove|abort-deconfigure)
 ;;
 esac
 
-for i in nginx root-nginx; do s="$i.service"
-  d_s_h unmask "$s" >$D || true
-  if d_s_h --quiet was-enabled "$s"; then
-    d_s_h enable "$s" >$D || true
-  else
-    d_s_h update-state "$s" >$D || true
-  fi
-done
+s="nginx.service"
+d_s_h unmask "$s" >$D || true
+if d_s_h --quiet was-enabled "$s"; then
+  d_s_h enable "$s" >$D || true
+else
+  d_s_h update-state "$s" >$D || true
+fi
 
 case "$1" in
 configure|abort-upgrade)
-  for i in nginx root-nginx; do
-    [ -x "/etc/init.d/$i" ] || continue
-    update-rc.d "$i" defaults || exit $?
-    invoke-rc.d "$i" try-restart || exit $?
-  done
+  i="nginx"
+  [ -x "/etc/init.d/$i" ] || break
+  update-rc.d "$i" defaults || exit $?
+  invoke-rc.d "$i" try-restart || exit $?
 ;;
 esac
 

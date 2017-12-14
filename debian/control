@@ -24,8 +24,7 @@ Description: high performance web/proxy server (metapackage)
  ${nginx:Description}
  .
  This package contains base configuration files used by Nginx
- and two separate init scripts for running Nginx as daemon - as usual user
- (most cases) and as root (transparent proxy cases).
+ and sysvinit script / systemd unit for running Nginx as daemon.
 
 Package: nginx-bin
 Architecture: any
