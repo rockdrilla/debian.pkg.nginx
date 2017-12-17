@@ -10,7 +10,7 @@ Build-Depends: debhelper (>= 10),
  libssl1.0-dev (>= 1.0.2),
  libxslt1-dev,
  zlib1g-dev
-Standards-Version: 3.9.8.0
+Standards-Version: 4.0.1
 Homepage: http://nginx.org
 Vcs-Git: https://github.com/rockdrilla/debian.pkg.nginx.git
 Vcs-Browser: https://github.com/rockdrilla/debian.pkg.nginx
