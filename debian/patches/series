@@ -12,6 +12,8 @@
 0012-configure-set-default-cacheline-size-to-64-for-aarch64-platforms.patch
 0013-use-sysconf-to-determine-cacheline-size-at-runtime.patch
 0014-retain-cap_net_raw-capability-for-transparent-proxying.patch
+0015-improved-the-capabilities-feature-detection.patch
+0016-fixed-capabilities-version.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch

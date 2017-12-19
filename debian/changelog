@@ -16,6 +16,8 @@ nginx (1:1.13.7-1) UNRELEASED; urgency=medium
     - Configure: set default cacheline size to 64 for aarch64 platforms.
     - Use sysconf to determine cacheline size at runtime.
     - Retain CAP_NET_RAW capability for transparent proxying.
+    - Improved the capabilities feature detection.
+    - Fixed capabilities version.
   * Refresh own patches.
   * Remove "root-nginx" instance:
     upstream patch "Retain CAP_NET_RAW capability for transparent proxying"
