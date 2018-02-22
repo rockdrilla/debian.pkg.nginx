@@ -1,0 +1,50 @@
+From: Ruslan Ermilov <ru@nginx.com>
+Date: Wed, 21 Feb 2018 15:50:43 +0300
+Subject: Geo: optimized configuration parser.
+
+If the geo block parser has failed, doing more things is pointless.
+
+--- a/src/http/modules/ngx_http_geo_module.c
++++ b/src/http/modules/ngx_http_geo_module.c
+@@ -461,6 +461,10 @@ ngx_http_geo_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ 
+     *cf = save;
+ 
++    if (rv != NGX_CONF_OK) {
++        goto failed;
++    }
++
+     geo->proxies = ctx.proxies;
+     geo->proxy_recursive = ctx.proxy_recursive;
+ 
+@@ -555,7 +559,7 @@ ngx_http_geo_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+     ngx_destroy_pool(ctx.temp_pool);
+     ngx_destroy_pool(pool);
+ 
+-    return rv;
++    return NGX_CONF_OK;
+ 
+ failed:
+ 
+--- a/src/stream/ngx_stream_geo_module.c
++++ b/src/stream/ngx_stream_geo_module.c
+@@ -431,6 +431,10 @@ ngx_stream_geo_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+ 
+     *cf = save;
+ 
++    if (rv != NGX_CONF_OK) {
++        goto failed;
++    }
++
+     if (ctx.ranges) {
+ 
+         if (ctx.high.low && !ctx.binary_include) {
+@@ -522,7 +526,7 @@ ngx_stream_geo_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+     ngx_destroy_pool(ctx.temp_pool);
+     ngx_destroy_pool(pool);
+ 
+-    return rv;
++    return NGX_CONF_OK;
+ 
+ failed:
+ 

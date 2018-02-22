@@ -1,0 +1,31 @@
+From: Roman Arutyunyan <arut@nginx.com>
+Date: Thu, 22 Feb 2018 13:16:21 +0300
+Subject: Generate error for unsupported IPv6 transparent proxy.
+
+On some platforms (for example, Linux with glibc 2.12-2.25) IPv4 transparent
+proxying is available, but IPv6 transparent proxying is not.  The entire feature
+is enabled in this case and NGX_HAVE_TRANSPARENT_PROXY macro is set to 1.
+Previously, an attempt to enable transparency for an IPv6 socket was silently
+ignored in this case and was usually followed by a bind(2) EADDRNOTAVAIL error
+(ticket #1487).  Now the error is generated for unavailable IPv6 transparent
+proxy.
+
+--- a/src/event/ngx_event_connect.c
++++ b/src/event/ngx_event_connect.c
+@@ -388,7 +388,16 @@ ngx_event_connect_set_transparent(ngx_peer_connection_t *pc, ngx_socket_t s)
+             return NGX_ERROR;
+         }
+ 
++#else
++
++        ngx_log_error(NGX_LOG_ALERT, pc->log, 0,
++                      "could not enable transparent proxying for IPv6 "
++                      "on this platform");
++
++        return NGX_ERROR;
++
+ #endif
++
+         break;
+ 
+ #endif /* NGX_HAVE_INET6 */

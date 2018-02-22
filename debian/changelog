@@ -1,3 +1,15 @@
+nginx (1:1.13.9-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Cherry-pick upstream patches:
+    - Geo: fixed memory allocation error handling (closes #1482).
+    - Geo: optimized configuration parser.
+    - Geo: fixed indentation.
+    - HTTP/2: style.
+    - Generate error for unsupported IPv6 transparent proxy.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Thu, 22 Feb 2018 20:28:48 +0300
+
 nginx (1:1.13.8-1) experimental; urgency=medium
 
   * New upstream release.
