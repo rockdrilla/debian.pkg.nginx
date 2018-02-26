@@ -1,3 +1,9 @@
+nginx (1:1.13.9-2) experimental; urgency=medium
+
+  * Switch to OpenSSL 1.1.x.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 26 Feb 2018 10:01:52 +0300
+
 nginx (1:1.13.9-1) experimental; urgency=medium
 
   * New upstream release.
