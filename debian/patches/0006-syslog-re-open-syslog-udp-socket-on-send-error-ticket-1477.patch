@@ -1,0 +1,30 @@
+From: Vladimir Homutov <vl@nginx.com>
+Date: Tue, 8 May 2018 19:35:56 +0300
+Subject: Syslog: re-open syslog udp socket on send error (ticket #1477).
+
+Previously, only unix domain sockets were reopened to tolerate cases when
+local syslog server was restarted.  It makes sense to treat other cases
+(for example, local IP address changes) similarly.
+
+--- a/src/core/ngx_syslog.c
++++ b/src/core/ngx_syslog.c
+@@ -289,9 +289,7 @@ ngx_syslog_send(ngx_syslog_peer_t *peer,
+         n = ngx_os_io.send(&peer->conn, buf, len);
+     }
+ 
+-#if (NGX_HAVE_UNIX_DOMAIN)
+-
+-    if (n == NGX_ERROR && peer->server.sockaddr->sa_family == AF_UNIX) {
++    if (n == NGX_ERROR) {
+ 
+         if (ngx_close_socket(peer->conn.fd) == -1) {
+             ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, ngx_socket_errno,
+@@ -301,8 +299,6 @@ ngx_syslog_send(ngx_syslog_peer_t *peer,
+         peer->conn.fd = (ngx_socket_t) -1;
+     }
+ 
+-#endif
+-
+     return n;
+ }
+ 

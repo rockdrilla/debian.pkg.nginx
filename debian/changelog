@@ -2,6 +2,14 @@ nginx (1:1.14.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Drop cherry-picked patches.
+  * Cherry-pick upstream patches:
+    - Cache: fixed cache valid slot to reject incorrect statuses.
+    - Mail: fixed error message about missing ssl_certificate_key.
+    - SSL: detect "listen ... ssl" without certificates (ticket #178).
+    - SSL: deprecated the "ssl" directive.
+    - Silenced -Wcast-function-type warnings (closes #1546).
+    - Syslog: re-open syslog udp socket on send error (ticket #1477).
+    - Configure: fixed clang version detection (closes #1539).
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 14 May 2018 17:11:03 +0300
 

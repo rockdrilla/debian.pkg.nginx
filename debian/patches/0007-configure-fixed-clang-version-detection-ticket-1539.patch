@@ -1,0 +1,21 @@
+From: Ruslan Ermilov <ru@nginx.com>
+Date: Tue, 24 Apr 2018 14:04:59 +0300
+Subject: Configure: fixed clang version detection (closes #1539).
+
+While 325b3042edd6 fixed it on MINIX, it broke it on systems
+that output the word "version" on several lines with "cc -v".
+The fix is to only consider "clang version" or "LLVM version"
+as clang version, but this time only using sed(1).
+
+--- a/auto/cc/clang
++++ b/auto/cc/clang
+@@ -6,7 +6,8 @@
+ 
+ 
+ NGX_CLANG_VER=`$CC -v 2>&1 | grep 'version' 2>&1 \
+-                           | sed -e 's/^.* version \(.*\)/\1/'`
++                           | sed -n -e 's/^.*clang version \(.*\)/\1/p' \
++                                    -e 's/^.*LLVM version \(.*\)/\1/p'`
+ 
+ echo " + clang version: $NGX_CLANG_VER"
+ 
