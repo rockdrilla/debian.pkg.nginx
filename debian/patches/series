@@ -1,8 +1,3 @@
-0001-geo-fixed-memory-allocation-error-handling-ticket-1482.patch
-0002-geo-optimized-configuration-parser.patch
-0003-geo-fixed-indentation.patch
-0004-http-2-style.patch
-0005-generate-error-for-unsupported-ipv6-transparent-proxy.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
