@@ -1,4 +1,4 @@
-nginx (1:1.14.0-1) UNRELEASED; urgency=medium
+nginx (1:1.14.0-1) experimental; urgency=medium
 
   * New upstream release.
   * Drop cherry-picked patches.
@@ -11,7 +11,7 @@ nginx (1:1.14.0-1) UNRELEASED; urgency=medium
     - Syslog: re-open syslog udp socket on send error (ticket #1477).
     - Configure: fixed clang version detection (closes #1539).
 
- -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 14 May 2018 17:11:03 +0300
+ -- Konstantin Demin <rockdrilla@gmail.com>  Mon, 14 May 2018 17:48:45 +0300
 
 nginx (1:1.13.9-2) experimental; urgency=medium
 
