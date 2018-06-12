@@ -1,10 +1,3 @@
-0001-cache-fixed-cache-valid-slot-to-reject-incorrect-statuses.patch
-0002-mail-fixed-error-message-about-missing-ssl_certificate_key.patch
-0003-ssl-detect-listen-ssl-without-certificates-ticket-178.patch
-0004-ssl-deprecated-the-ssl-directive.patch
-0005-silenced-cast-function-type-warnings-ticket-1546.patch
-0006-syslog-re-open-syslog-udp-socket-on-send-error-ticket-1477.patch
-0007-configure-fixed-clang-version-detection-ticket-1539.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
