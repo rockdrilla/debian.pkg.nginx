@@ -2,6 +2,14 @@ nginx (1:1.15.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Drop cherry-picked patches.
+  * Cherry-pick upstream patches:
+    - Added missing space after ngx_close_socket_n.
+    - SSL: removed extra prototype.
+    - Allowed digits, '+', '-', and '.' in scheme names as per RFC 3986.
+    - HTTP/2: validate client request scheme.
+    - Removed extraneous check while processing request line.
+    - Added r->schema.
+    - HTTP/2: use scheme from original request for pushes (closes #1549).
 
  -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 12 Jun 2018 16:02:04 +0300
 

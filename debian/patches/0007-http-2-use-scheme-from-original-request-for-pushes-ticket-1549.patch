@@ -1,0 +1,91 @@
+From: Ruslan Ermilov <ru@nginx.com>
+Date: Thu, 7 Jun 2018 20:04:22 +0300
+Subject: HTTP/2: use scheme from original request for pushes (closes #1549).
+
+Instead of the connection scheme, use scheme from the original request.
+This fixes pushes when SSL is terminated by a proxy server in front of
+nginx.
+
+--- a/src/http/v2/ngx_http_v2.c
++++ b/src/http/v2/ngx_http_v2.c
+@@ -2616,16 +2616,13 @@ ngx_http_v2_push_stream(ngx_http_v2_stre
+     r->method_name = ngx_http_core_get_method;
+     r->method = NGX_HTTP_GET;
+ 
+-#if (NGX_HTTP_SSL)
+-    if (fc->ssl) {
+-        ngx_str_set(&r->schema, "https");
+-
+-    } else
+-#endif
+-    {
+-        ngx_str_set(&r->schema, "http");
++    r->schema.data = ngx_pstrdup(pool, &parent->request->schema);
++    if (r->schema.data == NULL) {
++        goto close;
+     }
+ 
++    r->schema.len = parent->request->schema.len;
++
+     value.data = ngx_pstrdup(pool, path);
+     if (value.data == NULL) {
+         goto close;
+--- a/src/http/v2/ngx_http_v2_filter_module.c
++++ b/src/http/v2/ngx_http_v2_filter_module.c
+@@ -944,15 +944,15 @@ ngx_http_v2_push_resource(ngx_http_reque
+ 
+     ph = ngx_http_v2_push_headers;
+ 
++    len = ngx_max(r->schema.len, path->len);
++
+     if (binary[0].len) {
+-        tmp = ngx_palloc(r->pool, path->len);
++        tmp = ngx_palloc(r->pool, len);
+         if (tmp == NULL) {
+             return NGX_ERROR;
+         }
+ 
+     } else {
+-        len = path->len;
+-
+         for (i = 0; i < NGX_HTTP_V2_PUSH_HEADERS; i++) {
+             h = (ngx_table_elt_t **) ((char *) &r->headers_in + ph[i].offset);
+ 
+@@ -994,7 +994,7 @@ ngx_http_v2_push_resource(ngx_http_reque
+     len = (h2c->table_update ? 1 : 0)
+           + 1
+           + 1 + NGX_HTTP_V2_INT_OCTETS + path->len
+-          + 1;
++          + 1 + NGX_HTTP_V2_INT_OCTETS + r->schema.len;
+ 
+     for (i = 0; i < NGX_HTTP_V2_PUSH_HEADERS; i++) {
+         len += binary[i].len;
+@@ -1025,18 +1025,20 @@ ngx_http_v2_push_resource(ngx_http_reque
+     *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_PATH_INDEX);
+     pos = ngx_http_v2_write_value(pos, path->data, path->len, tmp);
+ 
+-#if (NGX_HTTP_SSL)
+-    if (fc->ssl) {
+-        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 push header: \":scheme: https\"");
++    ngx_log_debug1(NGX_LOG_DEBUG_HTTP, fc->log, 0,
++                   "http2 push header: \":scheme: %V\"", &r->schema);
++
++    if (r->schema.len == 5 && ngx_strncmp(r->schema.data, "https", 5) == 0) {
+         *pos++ = ngx_http_v2_indexed(NGX_HTTP_V2_SCHEME_HTTPS_INDEX);
+ 
+-    } else
+-#endif
++    } else if (r->schema.len == 4
++               && ngx_strncmp(r->schema.data, "http", 4) == 0)
+     {
+-        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, fc->log, 0,
+-                       "http2 push header: \":scheme: http\"");
+         *pos++ = ngx_http_v2_indexed(NGX_HTTP_V2_SCHEME_HTTP_INDEX);
++
++    } else {
++        *pos++ = ngx_http_v2_inc_indexed(NGX_HTTP_V2_SCHEME_HTTP_INDEX);
++        pos = ngx_http_v2_write_value(pos, r->schema.data, r->schema.len, tmp);
+     }
+ 
+     for (i = 0; i < NGX_HTTP_V2_PUSH_HEADERS; i++) {

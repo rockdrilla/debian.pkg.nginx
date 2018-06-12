@@ -1,3 +1,10 @@
+0001-added-missing-space-after-ngx_close_socket_n.patch
+0002-ssl-removed-extra-prototype.patch
+0003-allowed-digits-and-symbols-in-scheme-names-as-per-rfc-3986.patch
+0004-http-2-validate-client-request-scheme.patch
+0005-removed-extraneous-check-while-processing-request-line.patch
+0006-added-r-schema.patch
+0007-http-2-use-scheme-from-original-request-for-pushes-ticket-1549.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
