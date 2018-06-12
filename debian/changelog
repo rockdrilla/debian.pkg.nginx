@@ -1,4 +1,4 @@
-nginx (1:1.15.0-1) UNRELEASED; urgency=medium
+nginx (1:1.15.0-1) experimental; urgency=medium
 
   * New upstream release.
   * Drop cherry-picked patches.
@@ -11,7 +11,7 @@ nginx (1:1.15.0-1) UNRELEASED; urgency=medium
     - Added r->schema.
     - HTTP/2: use scheme from original request for pushes (closes #1549).
 
- -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 12 Jun 2018 16:02:04 +0300
+ -- Konstantin Demin <rockdrilla@gmail.com>  Tue, 12 Jun 2018 16:33:35 +0300
 
 nginx (1:1.14.0-1) experimental; urgency=medium
 
