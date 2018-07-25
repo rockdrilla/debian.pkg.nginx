@@ -1,3 +1,4 @@
+0001-configure-fixed-compiler-warnings-with-wall-wextra.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
