@@ -1,3 +1,12 @@
+nginx (1:1.15.2-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Drop cherry-picked patches.
+  * Cherry-pick upstream patches:
+    - Configure: fixed compiler warnings with "-Wall -Wextra".
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 25 Jul 2018 09:44:27 +0300
+
 nginx (1:1.15.0-1) experimental; urgency=medium
 
   * New upstream release.
