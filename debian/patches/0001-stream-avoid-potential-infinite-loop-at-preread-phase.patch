@@ -1,0 +1,68 @@
+From: Roman Arutyunyan <arut@nginx.com>
+Date: Wed, 29 Aug 2018 15:56:42 +0300
+Subject: Stream: avoid potential infinite loop at preread phase.
+
+Previously the preread phase code ignored NGX_AGAIN value returned from
+c->recv() and relied only on c->read->ready.  But this flag is not reliable and
+should only be checked for optimization purposes.  For example, when using
+SSL, c->read->ready may be set when no input is available.  This can lead to
+calling preread handler infinitely in a loop.
+
+--- a/src/stream/ngx_stream_core_module.c
++++ b/src/stream/ngx_stream_core_module.c
+@@ -249,34 +249,40 @@ ngx_stream_core_preread_phase(ngx_stream_session_t *s,
+         }
+ 
+         if (!c->read->ready) {
+-            if (ngx_handle_read_event(c->read, 0) != NGX_OK) {
+-                rc = NGX_ERROR;
+-                break;
+-            }
+-
+-            if (!c->read->timer_set) {
+-                ngx_add_timer(c->read, cscf->preread_timeout);
+-            }
+-
+-            c->read->handler = ngx_stream_session_handler;
+-
+-            return NGX_OK;
++            break;
+         }
+ 
+         n = c->recv(c, c->buffer->last, size);
+ 
+-        if (n == NGX_ERROR) {
++        if (n == NGX_ERROR || n == 0) {
+             rc = NGX_STREAM_OK;
+             break;
+         }
+ 
+-        if (n > 0) {
+-            c->buffer->last += n;
++        if (n == NGX_AGAIN) {
++            break;
+         }
+ 
++        c->buffer->last += n;
++
+         rc = ph->handler(s);
+     }
+ 
++    if (rc == NGX_AGAIN) {
++        if (ngx_handle_read_event(c->read, 0) != NGX_OK) {
++            ngx_stream_finalize_session(s, NGX_STREAM_INTERNAL_SERVER_ERROR);
++            return NGX_OK;
++        }
++
++        if (!c->read->timer_set) {
++            ngx_add_timer(c->read, cscf->preread_timeout);
++        }
++
++        c->read->handler = ngx_stream_session_handler;
++
++        return NGX_OK;
++    }
++
+     if (c->read->timer_set) {
+         ngx_del_timer(c->read);
+     }
