@@ -1,4 +1,9 @@
 0001-stream-avoid-potential-infinite-loop-at-preread-phase.patch
+0002-grpc-improved-keepalive-handling.patch
+0003-grpc-disabled-keepalive-when-sending-control-frames-was-blocked.patch
+0004-lingering-close-changed-to-handle-ngx_again.patch
+0005-ssl-corrected-ssl_error_want_write-ssl_error_want_read-logging.patch
+0006-ssl-restore-handlers-after-blocking.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch

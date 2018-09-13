@@ -1,0 +1,60 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Mon, 10 Sep 2018 18:57:19 +0300
+Subject: SSL: corrected SSL_ERROR_WANT_WRITE / SSL_ERROR_WANT_READ logging.
+
+While SSL_read() most likely to return SSL_ERROR_WANT_WRITE (and SSL_write()
+accordingly SSL_ERROR_WANT_READ) during an SSL renegotiation, it is
+not necessary mean that a renegotiation was started.  In particular,
+it can never happen during a renegotiation or can happen multiple times
+during a renegotiation.
+
+Because of the above, misleading "peer started SSL renegotiation" info
+messages were replaced with "SSL_read: want write" and "SSL_write: want read"
+debug ones.
+
+Additionally, "SSL write handler" and "SSL read handler" are now logged
+by the SSL write and read handlers, to make it easier to understand that
+temporary SSL handlers are called instead of normal handlers.
+
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -1681,8 +1681,8 @@ ngx_ssl_handle_recv(ngx_connection_t *c, int n)
+ 
+     if (sslerr == SSL_ERROR_WANT_WRITE) {
+ 
+-        ngx_log_error(NGX_LOG_INFO, c->log, 0,
+-                      "peer started SSL renegotiation");
++        ngx_log_debug0(NGX_LOG_DEBUG_EVENT, c->log, 0,
++                       "SSL_read: want write");
+ 
+         c->write->ready = 0;
+ 
+@@ -1724,6 +1724,8 @@ ngx_ssl_write_handler(ngx_event_t *wev)
+ 
+     c = wev->data;
+ 
++    ngx_log_debug0(NGX_LOG_DEBUG_EVENT, c->log, 0, "SSL write handler");
++
+     c->read->handler(c->read);
+ }
+ 
+@@ -1938,8 +1940,8 @@ ngx_ssl_write(ngx_connection_t *c, u_char *data, size_t size)
+ 
+     if (sslerr == SSL_ERROR_WANT_READ) {
+ 
+-        ngx_log_error(NGX_LOG_INFO, c->log, 0,
+-                      "peer started SSL renegotiation");
++        ngx_log_debug0(NGX_LOG_DEBUG_EVENT, c->log, 0,
++                       "SSL_write: want read");
+ 
+         c->read->ready = 0;
+ 
+@@ -1977,6 +1979,8 @@ ngx_ssl_read_handler(ngx_event_t *rev)
+ 
+     c = rev->data;
+ 
++    ngx_log_debug0(NGX_LOG_DEBUG_EVENT, c->log, 0, "SSL read handler");
++
+     c->write->handler(c->write);
+ }
+ 

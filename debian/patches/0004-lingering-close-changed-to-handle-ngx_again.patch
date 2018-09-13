@@ -1,0 +1,28 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Mon, 10 Sep 2018 18:57:13 +0300
+Subject: Lingering close changed to handle NGX_AGAIN.
+
+The "do { c->recv() } while (c->read->ready)" form used in the
+ngx_http_lingering_close_handler() is not really correct, as for
+example with SSL c->read->ready may be still set when returning NGX_AGAIN
+due to SSL_ERROR_WANT_WRITE.  Therefore the above might be an infinite loop.
+
+This doesn't really matter in lingering close, as we shutdown write side
+of the socket anyway and also disable renegotiation (and even without shutdown
+and with renegotiation it requires using very large certificate chain and
+tuning socket buffers to trigger SSL_ERROR_WANT_WRITE).  But for the sake of
+correctness added an NGX_AGAIN check.
+
+--- a/src/http/ngx_http_request.c
++++ b/src/http/ngx_http_request.c
+@@ -3311,6 +3311,10 @@ ngx_http_lingering_close_handler(ngx_event_t *rev)
+ 
+         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0, "lingering read: %z", n);
+ 
++        if (n == NGX_AGAIN) {
++            break;
++        }
++
+         if (n == NGX_ERROR || n == 0) {
+             ngx_http_close_request(r, 0);
+             return;
