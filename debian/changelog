@@ -1,3 +1,11 @@
+nginx (1:1.15.5-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Cherry-pick upstream patches:
+    - Upstream: proxy_socket_keepalive and friends.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Thu, 04 Oct 2018 10:08:53 +0300
+
 nginx (1:1.15.4-1) experimental; urgency=medium
 
   * New upstream release.
