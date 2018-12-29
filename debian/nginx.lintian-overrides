@@ -1,4 +1,6 @@
 # scripts are actually registered
 # it's all about lintian: trust but check
-
 script-in-etc-init.d-not-registered-via-update-rc.d
+
+# work in progress (probably %) )
+systemd-service-file-missing-hardening-features lib/systemd/system/nginx.service

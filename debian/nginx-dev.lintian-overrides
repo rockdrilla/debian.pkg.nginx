@@ -1,4 +1,6 @@
 # debian/rules.common has valid shebang
 # but isn't designed to be run directly
+script-not-executable usr/share/nginx/debian/rules.common
 
-nginx-dev: script-not-executable usr/share/nginx/debian/rules.common
+# debhelper is required, really
+binary-package-depends-on-toolchain-package

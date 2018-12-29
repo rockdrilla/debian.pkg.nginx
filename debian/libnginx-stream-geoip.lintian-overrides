@@ -1,5 +1,4 @@
 # avoid unnessesary dependency:
 # libnginx-stream-geoip depends on libnginx-stream
 # libnginx-stream       depends on nginx-bin
-
-libnginx-stream-geoip: usr-share-doc-symlink-without-dependency nginx-bin
+usr-share-doc-symlink-without-dependency nginx-bin

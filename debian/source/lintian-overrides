@@ -1,0 +1,9 @@
+# no tests (for now)
+testsuite-autopkgtest-missing
+
+# work in progress
+upstream-metadata-file-is-missing
+
+# actually, dh_clean is called in override_dh_clean
+# ref: debian/rules.common
+override_dh_clean-does-not-call-dh_clean
