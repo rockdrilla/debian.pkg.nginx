@@ -1,3 +1,3 @@
-## https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-XSS-Protection
+## https://infosec.mozilla.org/guidelines/web_security#x-xss-protection
 
 add_header "X-XSS-Protection" "1; mode=block" always;

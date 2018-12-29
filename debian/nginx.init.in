@@ -97,7 +97,7 @@ rotate_logs() {
 
 upgrade_nginx() {
   # Online upgrade nginx executable
-  # http://nginx.org/en/docs/control.html
+  # https://nginx.org/en/docs/control.html
   #
   # Return
   #   0 if nginx has been successfully upgraded

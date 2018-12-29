@@ -1,3 +1,3 @@
-## https://wiki.mozilla.org/Security/Guidelines/Web_Security#Referrer_Policy
+## https://infosec.mozilla.org/guidelines/web_security#referrer-policy
 
 add_header "Referrer-Policy" "no-referrer, strict-origin-when-cross-origin" always;
