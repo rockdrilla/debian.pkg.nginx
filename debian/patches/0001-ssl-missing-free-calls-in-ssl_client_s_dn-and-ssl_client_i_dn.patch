@@ -1,0 +1,28 @@
+From: Nikolay Morozov <n.morozov@securitycode.ru>
+Date: Tue, 26 Mar 2019 09:33:57 +0300
+Subject: SSL: missing free calls in $ssl_client_s_dn and $ssl_client_i_dn.
+
+If X509_get_issuer_name() or X509_get_subject_name() returned NULL,
+this could lead to a certificate reference leak.  It cannot happen
+in practice though, since each function returns an internal pointer
+to a mandatory subfield of the certificate successfully decoded by
+d2i_X509() during certificate message processing (closes #1751).
+
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -4622,6 +4622,7 @@ ngx_ssl_get_subject_dn(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ 
+     name = X509_get_subject_name(cert);
+     if (name == NULL) {
++        X509_free(cert);
+         return NGX_ERROR;
+     }
+ 
+@@ -4673,6 +4674,7 @@ ngx_ssl_get_issuer_dn(ngx_connection_t *c, ngx_pool_t *pool, ngx_str_t *s)
+ 
+     name = X509_get_issuer_name(cert);
+     if (name == NULL) {
++        X509_free(cert);
+         return NGX_ERROR;
+     }
+ 

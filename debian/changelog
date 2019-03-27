@@ -1,3 +1,11 @@
+nginx (1:1.15.10-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Cherry-pick upstream patches:
+    - SSL: missing free calls in $ssl_client_s_dn and $ssl_client_i_dn.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 27 Mar 2019 09:40:43 +0300
+
 nginx (1:1.15.9-1) experimental; urgency=medium
 
   * New upstream release.
