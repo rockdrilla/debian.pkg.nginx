@@ -1,3 +1,10 @@
+nginx (1:1.15.12-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Drop cherry-picked patches.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 17 Apr 2019 16:50:49 +0300
+
 nginx (1:1.15.10-1) experimental; urgency=medium
 
   * New upstream release.
