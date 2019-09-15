@@ -1,0 +1,50 @@
+From: Sergey Kandaurov <pluknet@nginx.com>
+Date: Mon, 19 Aug 2019 15:16:06 +0300
+Subject: HTTP/2: discard remaining request body after redirect.
+
+Previously, if unbuffered request body reading wasn't finished before
+the request was redirected to a different location using error_page
+or X-Accel-Redirect, and the request body is read again, this could
+lead to disastrous effects, such as a duplicate post_handler call or
+"http request count is zero" alert followed by a segmentation fault.
+
+This happened in the following configuration (ticket #1819):
+
+    location / {
+        proxy_request_buffering off;
+        proxy_pass http://bad;
+        proxy_intercept_errors on;
+        error_page 502 = /error;
+    }
+
+    location /error {
+        proxy_pass http://backend;
+    }
+
+--- a/src/http/v2/ngx_http_v2.c
++++ b/src/http/v2/ngx_http_v2.c
+@@ -947,6 +947,15 @@ ngx_http_v2_state_read_data(ngx_http_v2_connection_t *h2c, u_char *pos,
+         return ngx_http_v2_state_skip_padded(h2c, pos, end);
+     }
+ 
++    r = stream->request;
++
++    if (r->reading_body && !r->request_body_no_buffering) {
++        ngx_log_debug0(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
++                       "skipping http2 DATA frame");
++
++        return ngx_http_v2_state_skip_padded(h2c, pos, end);
++    }
++
+     size = end - pos;
+ 
+     if (size >= h2c->state.length) {
+@@ -954,8 +963,6 @@ ngx_http_v2_state_read_data(ngx_http_v2_connection_t *h2c, u_char *pos,
+         stream->in_closed = h2c->state.flags & NGX_HTTP_V2_END_STREAM_FLAG;
+     }
+ 
+-    r = stream->request;
+-
+     if (r->request_body) {
+         rc = ngx_http_v2_process_request_body(r, pos, size, stream->in_closed);
+ 

@@ -1,3 +1,16 @@
+nginx (1:1.17.3-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Cherry-pick upstream patches:
+    - HTTP/2: discard remaining request body after redirect
+    - Detect runaway chunks in ngx_http_parse_chunked()
+    - Fixed "return" with discarding invalid chunked body
+    - HTTP/2: close connection on frames with self-dependency
+    - HTTP/2: close connection on zero WINDOW_UPDATE
+    - Resolver: fixed possible use-after-free while resolving PTR
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Sun, 15 Sep 2019 12:39:38 +0300
+
 nginx (1:1.17.2-1) experimental; urgency=medium
 
   * New upstream release.

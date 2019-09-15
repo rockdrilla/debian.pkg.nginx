@@ -1,0 +1,31 @@
+From: Sergey Kandaurov <pluknet@nginx.com>
+Date: Tue, 3 Sep 2019 17:26:56 +0300
+Subject: Detect runaway chunks in ngx_http_parse_chunked().
+
+As defined in HTTP/1.1, body chunks have the following ABNF:
+
+   chunk = chunk-size [ chunk-ext ] CRLF chunk-data CRLF
+
+where chunk-data is a sequence of chunk-size octets.
+
+With this change, chunk-data that doesn't end up with CRLF at chunk-size
+offset will be treated as invalid, such as in the example provided below:
+
+4
+SEE-THIS-AND-
+4
+THAT
+0
+
+--- a/src/http/ngx_http_parse.c
++++ b/src/http/ngx_http_parse.c
+@@ -2268,6 +2268,9 @@ ngx_http_parse_chunked(ngx_http_request_t *r, ngx_buf_t *b,
+                 break;
+             case LF:
+                 state = sw_chunk_start;
++                break;
++            default:
++                goto invalid;
+             }
+             break;
+ 

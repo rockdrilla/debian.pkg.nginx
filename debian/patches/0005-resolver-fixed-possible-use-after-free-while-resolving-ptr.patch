@@ -1,0 +1,24 @@
+From: Sergey Kandaurov <pluknet@nginx.com>
+Date: Tue, 10 Sep 2019 15:42:34 +0300
+Subject: Resolver: fixed possible use-after-free while resolving PTR.
+
+Previously, if a response to the PTR request was cached, and ngx_resolver_dup()
+failed to allocate memory for the resulting name, then the original node was
+freed but left in expire_queue.  A subsequent address resolving would end up
+in a use-after-free memory access of the node either in ngx_resolver_expire()
+or ngx_resolver_process_ptr(), when accessing it through expire_queue.
+
+The fix is to leave the resolver node intact.
+
+--- a/src/core/ngx_resolver.c
++++ b/src/core/ngx_resolver.c
+@@ -972,7 +972,8 @@ ngx_resolve_addr(ngx_resolver_ctx_t *ctx)
+ 
+             name = ngx_resolver_dup(r, rn->name, rn->nlen);
+             if (name == NULL) {
+-                goto failed;
++                ngx_resolver_free(r, ctx);
++                return NGX_ERROR;
+             }
+ 
+             ctx->name.len = rn->nlen;

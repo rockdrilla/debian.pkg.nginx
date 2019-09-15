@@ -1,3 +1,9 @@
+0000-http2-discard-remaining-request-body-after-redirect.patch
+0001-detect-runaway-chunks-in-ngx_http_parse_chunked.patch
+0002-fixed-return-with-discarding-invalid-chunked-body.patch
+0003-http2-close-connection-on-frames-with-self-dependency.patch
+0004-http2-close-connection-on-zero-window_update.patch
+0005-resolver-fixed-possible-use-after-free-while-resolving-ptr.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
