@@ -1,4 +1,3 @@
-0001-core-removed-dead-code-in-ngx_rbtree_delete.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
