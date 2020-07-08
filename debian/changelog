@@ -1,3 +1,9 @@
+nginx (1:1.19.1-1) experimental; urgency=medium
+
+  * New upstream release.
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 08 Jul 2020 21:19:39 +0300
+
 nginx (1:1.19.0-1) experimental; urgency=medium
 
   * New upstream release.
