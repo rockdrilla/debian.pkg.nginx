@@ -1,3 +1,17 @@
+nginx (1:1.19.4-2) experimental; urgency=medium
+
+  * Cherry-pick some upstream patches:
+    - Core: added format specifiers to output binary data as hex
+    - Removed dead code from ngx_http_set_keepalive()
+    - SSL: fixed non-working SSL shutdown on lingering close
+    - Request body: improved logging
+    - Request body: removed error assumption (ticket #2058)
+  * Use debhelper compat 13.
+  * Bump Standards version to 4.5.0.
+  * Set Rules-Requires-Root to "no".
+
+ -- Konstantin Demin <rockdrilla@gmail.com>  Wed, 11 Nov 2020 17:43:25 +0300
+
 nginx (1:1.19.4-1) experimental; urgency=medium
 
   * New upstream release.

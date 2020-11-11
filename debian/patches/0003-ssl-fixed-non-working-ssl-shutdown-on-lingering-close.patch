@@ -1,0 +1,192 @@
+From: Ruslan Ermilov <ru@nginx.com>
+Date: Fri, 6 Nov 2020 23:44:54 +0300
+Subject: SSL: fixed non-working SSL shutdown on lingering close.
+
+When doing lingering close, the socket was first shut down for writing,
+so SSL shutdown initiated after lingering close was not able to send
+the close_notify alerts (ticket #2056).
+
+The fix is to call ngx_ssl_shutdown() before shutting down the socket.
+
+--- a/src/http/ngx_http_request.c
++++ b/src/http/ngx_http_request.c
+@@ -49,7 +49,7 @@ static void ngx_http_request_finalizer(ngx_http_request_t *r);
+ 
+ static void ngx_http_set_keepalive(ngx_http_request_t *r);
+ static void ngx_http_keepalive_handler(ngx_event_t *ev);
+-static void ngx_http_set_lingering_close(ngx_http_request_t *r);
++static void ngx_http_set_lingering_close(ngx_connection_t *c);
+ static void ngx_http_lingering_close_handler(ngx_event_t *ev);
+ static ngx_int_t ngx_http_post_action(ngx_http_request_t *r);
+ static void ngx_http_close_request(ngx_http_request_t *r, ngx_int_t error);
+@@ -2754,7 +2754,7 @@ ngx_http_finalize_connection(ngx_http_request_t *r)
+                 || r->header_in->pos < r->header_in->last
+                 || r->connection->read->ready)))
+     {
+-        ngx_http_set_lingering_close(r);
++        ngx_http_set_lingering_close(r->connection);
+         return;
+     }
+ 
+@@ -3368,22 +3368,43 @@ ngx_http_keepalive_handler(ngx_event_t *rev)
+ 
+ 
+ static void
+-ngx_http_set_lingering_close(ngx_http_request_t *r)
++ngx_http_set_lingering_close(ngx_connection_t *c)
+ {
+     ngx_event_t               *rev, *wev;
+-    ngx_connection_t          *c;
++    ngx_http_request_t        *r;
+     ngx_http_core_loc_conf_t  *clcf;
+ 
+-    c = r->connection;
++    r = c->data;
+ 
+     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
+ 
++    if (r->lingering_time == 0) {
++        r->lingering_time = ngx_time() + (time_t) (clcf->lingering_time / 1000);
++    }
++
++#if (NGX_HTTP_SSL)
++    if (c->ssl) {
++        ngx_int_t  rc;
++
++        rc = ngx_ssl_shutdown(c);
++
++        if (rc == NGX_ERROR) {
++            ngx_http_close_request(r, 0);
++            return;
++        }
++
++        if (rc == NGX_AGAIN) {
++            c->ssl->handler = ngx_http_set_lingering_close;
++            return;
++        }
++
++        c->recv = ngx_recv;
++    }
++#endif
++
+     rev = c->read;
+     rev->handler = ngx_http_lingering_close_handler;
+ 
+-    r->lingering_time = ngx_time() + (time_t) (clcf->lingering_time / 1000);
+-    ngx_add_timer(rev, clcf->lingering_timeout);
+-
+     if (ngx_handle_read_event(rev, 0) != NGX_OK) {
+         ngx_http_close_request(r, 0);
+         return;
+@@ -3406,6 +3427,8 @@ ngx_http_set_lingering_close(ngx_http_request_t *r)
+         return;
+     }
+ 
++    ngx_add_timer(rev, clcf->lingering_timeout);
++
+     if (rev->ready) {
+         ngx_http_lingering_close_handler(rev);
+     }
+--- a/src/http/ngx_http_request_body.c
++++ b/src/http/ngx_http_request_body.c
+@@ -674,6 +674,7 @@ ngx_http_discarded_request_body_handler(ngx_http_request_t *r)
+     if (rc == NGX_OK) {
+         r->discard_body = 0;
+         r->lingering_close = 0;
++        r->lingering_time = 0;
+         ngx_http_finalize_request(r, NGX_DONE);
+         return;
+     }
+--- a/src/http/v2/ngx_http_v2.c
++++ b/src/http/v2/ngx_http_v2.c
+@@ -60,7 +60,7 @@ typedef struct {
+ static void ngx_http_v2_read_handler(ngx_event_t *rev);
+ static void ngx_http_v2_write_handler(ngx_event_t *wev);
+ static void ngx_http_v2_handle_connection(ngx_http_v2_connection_t *h2c);
+-static void ngx_http_v2_lingering_close(ngx_http_v2_connection_t *h2c);
++static void ngx_http_v2_lingering_close(ngx_connection_t *c);
+ static void ngx_http_v2_lingering_close_handler(ngx_event_t *rev);
+ 
+ static u_char *ngx_http_v2_state_proxy_protocol(ngx_http_v2_connection_t *h2c,
+@@ -664,7 +664,7 @@ ngx_http_v2_handle_connection(ngx_http_v2_connection_t *h2c)
+     }
+ 
+     if (h2c->goaway) {
+-        ngx_http_v2_lingering_close(h2c);
++        ngx_http_v2_lingering_close(c);
+         return;
+     }
+ 
+@@ -703,13 +703,13 @@ ngx_http_v2_handle_connection(ngx_http_v2_connection_t *h2c)
+ 
+ 
+ static void
+-ngx_http_v2_lingering_close(ngx_http_v2_connection_t *h2c)
++ngx_http_v2_lingering_close(ngx_connection_t *c)
+ {
+     ngx_event_t               *rev, *wev;
+-    ngx_connection_t          *c;
++    ngx_http_v2_connection_t  *h2c;
+     ngx_http_core_loc_conf_t  *clcf;
+ 
+-    c = h2c->connection;
++    h2c = c->data;
+ 
+     clcf = ngx_http_get_module_loc_conf(h2c->http_connection->conf_ctx,
+                                         ngx_http_core_module);
+@@ -719,12 +719,34 @@ ngx_http_v2_lingering_close(ngx_http_v2_connection_t *h2c)
+         return;
+     }
+ 
++    if (h2c->lingering_time == 0) {
++        h2c->lingering_time = ngx_time()
++                              + (time_t) (clcf->lingering_time / 1000);
++    }
++
++#if (NGX_HTTP_SSL)
++    if (c->ssl) {
++        ngx_int_t  rc;
++
++        rc = ngx_ssl_shutdown(c);
++
++        if (rc == NGX_ERROR) {
++            ngx_http_close_connection(c);
++            return;
++        }
++
++        if (rc == NGX_AGAIN) {
++            c->ssl->handler = ngx_http_v2_lingering_close;
++            return;
++        }
++
++        c->recv = ngx_recv;
++    }
++#endif
++
+     rev = c->read;
+     rev->handler = ngx_http_v2_lingering_close_handler;
+ 
+-    h2c->lingering_time = ngx_time() + (time_t) (clcf->lingering_time / 1000);
+-    ngx_add_timer(rev, clcf->lingering_timeout);
+-
+     if (ngx_handle_read_event(rev, 0) != NGX_OK) {
+         ngx_http_close_connection(c);
+         return;
+@@ -747,6 +769,8 @@ ngx_http_v2_lingering_close(ngx_http_v2_connection_t *h2c)
+         return;
+     }
+ 
++    ngx_add_timer(rev, clcf->lingering_timeout);
++
+     if (rev->ready) {
+         ngx_http_v2_lingering_close_handler(rev);
+     }
+@@ -4757,7 +4781,7 @@ done:
+         return;
+     }
+ 
+-    ngx_http_v2_lingering_close(h2c);
++    ngx_http_v2_lingering_close(c);
+ }
+ 
+ 

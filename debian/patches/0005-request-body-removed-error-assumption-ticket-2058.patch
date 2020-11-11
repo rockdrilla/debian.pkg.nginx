@@ -1,0 +1,29 @@
+From: Maxim Dounin <mdounin@mdounin.ru>
+Date: Mon, 9 Nov 2020 22:41:54 +0300
+Subject: Request body: removed error assumption (ticket #2058).
+
+Before introduction of request body filter in 42d9beeb22db, the only
+possible return code from the ngx_http_request_body_filter() call
+without actual buffers was NGX_HTTP_INTERNAL_SERVER_ERROR, and
+the code in ngx_http_read_client_request_body() hardcoded the only
+possible error to simplify the code of initial call to set rb->rest.
+
+This is no longer true after introduction of request body filters though,
+as a request body filter might need to return other errors, such as 403.
+Fix is to preserve the error code actually returned by the call
+instead of assuming 500.
+
+--- a/src/http/ngx_http_request_body.c
++++ b/src/http/ngx_http_request_body.c
+@@ -137,8 +137,9 @@ ngx_http_read_client_request_body(ngx_http_request_t *r,
+     } else {
+         /* set rb->rest */
+ 
+-        if (ngx_http_request_body_filter(r, NULL) != NGX_OK) {
+-            rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
++        rc = ngx_http_request_body_filter(r, NULL);
++
++        if (rc != NGX_OK) {
+             goto done;
+         }
+     }
