@@ -1,8 +1,3 @@
-0001-core-added-format-specifiers-to-output-binary-data-as-hex.patch
-0002-removed-dead-code-from-ngx_http_set_keepalive.patch
-0003-ssl-fixed-non-working-ssl-shutdown-on-lingering-close.patch
-0004-request-body-improved-logging.patch
-0005-request-body-removed-error-assumption-ticket-2058.patch
 0101-define_gnu_source-on-other-glibc-based-platforms.patch
 0201-configure-trim-whitespaces.patch
 0202-control-compiler-flags.patch
